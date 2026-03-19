@@ -1,0 +1,212 @@
+@import "tailwindcss";
+
+:root {
+  /* PregTap Color Palette - MO App Theme */
+  --pregtap-primary: #FF9690;
+  --pregtap-primary-dark: #FF7A74;
+  --pregtap-primary-light: #FFB5B0;
+  --pregtap-secondary: #FFC0C0;
+  --pregtap-background: #FDEEEE;
+  --pregtap-background-warm: #FFF5F5;
+  --pregtap-background-gradient: linear-gradient(180deg, #FFEBEE 0%, #FFF3E0 100%);
+  --pregtap-text-primary: #3E2723;
+  --pregtap-text-secondary: #757575;
+  --pregtap-text-light: #999999;
+  --pregtap-white: #FFFFFF;
+  --pregtap-mint: #B8E6D4;
+  --pregtap-mint-bg: #E0F2F1;
+  --pregtap-mint-dark: #8FD4BC;
+  --pregtap-gold: #FFD700;
+  --pregtap-gold-light: #FFF3B0;
+  --pregtap-yellow-bg: #FFF3E0;
+
+  /* Shadows - Soft and diffused */
+  --shadow-soft: 0 2px 8px rgba(255, 150, 144, 0.12);
+  --shadow-medium: 0 4px 16px rgba(255, 150, 144, 0.18);
+  --shadow-large: 0 8px 24px rgba(255, 150, 144, 0.22);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.08);
+
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 25px;
+  --radius-full: 9999px;
+
+  /* Background */
+  --background: var(--pregtap-background);
+  --foreground: var(--pregtap-text-primary);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-pregtap-primary: var(--pregtap-primary);
+  --color-pregtap-secondary: var(--pregtap-secondary);
+  --color-pregtap-mint: var(--pregtap-mint);
+  --font-sans: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--pregtap-background-gradient);
+  color: var(--pregtap-text-primary);
+  font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--pregtap-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--pregtap-primary);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--pregtap-primary-dark);
+}
+
+/* Animation keyframes */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2.5s ease-in-out infinite;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.4s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out forwards;
+}
+
+/* Stagger animations */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
+
+/* Typography helpers */
+.heading-1 {
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.heading-2 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.heading-3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+/* Button base styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--pregtap-primary) 0%, var(--pregtap-primary-dark) 100%);
+  color: white;
+  box-shadow: var(--shadow-soft);
+}
+
+.btn-primary:hover {
+  box-shadow: var(--shadow-medium);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 2px solid var(--pregtap-primary);
+  color: var(--pregtap-primary);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 150, 144, 0.1);
+}
+
+/* Card styles */
+.card {
+  background: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+}
+
+/* Text colors matching MO app */
+.text-primary { color: var(--pregtap-text-primary); }
+.text-secondary { color: var(--pregtap-text-secondary); }
+.text-light { color: var(--pregtap-text-light); }
