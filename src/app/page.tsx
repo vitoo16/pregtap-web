@@ -1,14 +1,13 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { motion, useInView, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 
+import { AuthModal } from '@/components/auth-modal';
+import { type ApiResponse, type AuthResponse, type AuthUser } from '@/lib/auth';
+
 // Icons as SVG components
-const HeartIcon = ({ className = "" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-  </svg>
-);
 
 const MenuIcon = ({ className = "" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -77,20 +76,21 @@ const fadeInUp: Variants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
 };
 
-const fadeIn: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.6 } }
-};
+type AuthMode = 'login' | 'register';
 
-const scaleIn: Variants = {
-  hidden: { opacity: 0, scale: 0.9 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } }
-};
+function getDisplayName(user: AuthUser | null) {
+  if (!user) {
+    return 'mẹ bầu';
+  }
 
-const staggerContainer: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
-};
+  return user.fullName?.trim() || user.email?.trim() || user.phone?.trim() || 'mẹ bầu';
+}
+
+function getUserInitial(user: AuthUser | null) {
+  const displayName = getDisplayName(user).trim();
+
+  return displayName.charAt(0).toUpperCase();
+}
 
 // Feature data
 const features = [
@@ -115,7 +115,7 @@ const features = [
               whileInView={{ height: `${h}%` }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.05, duration: 0.4 }}
-              className="flex-1 bg-gradient-to-t from-[#FF9690] to-[#FFC0C0] rounded-t-sm"
+              className="flex-1 bg-linear-to-t from-[#FF9690] to-[#FFC0C0] rounded-t-sm"
             />
           ))}
         </div>
@@ -223,7 +223,7 @@ const features = [
             initial={{ scale: 0 }}
             whileInView={{ scale: 1 }}
             viewport={{ once: true }}
-            className="text-xs bg-gradient-to-r from-[#FF9690] to-[#FFC0C0] text-white px-3 py-1 rounded-full"
+            className="text-xs bg-linear-to-r from-[#FF9690] to-[#FFC0C0] text-white px-3 py-1 rounded-full"
           >
             Đã ghi nhận hôm nay
           </motion.span>
@@ -236,69 +236,47 @@ const features = [
 // Premium plans
 const premiumPlans = [
   {
-    name: "Miễn phí",
-    price: "0",
-    period: "vĩnh viễn",
-    features: [
-      "Theo dõi thai kỳ cơ bản",
-      "Nhật ký cân nặng",
-      "Gợi ý dinh dưỡng chung",
-      "1 hồ sơ y tế",
-      "Theo dõi cảm xúc cơ bản"
-    ],
-    cta: "Sử dụng miễn phí",
-    popular: false,
-    bgGradient: "from-gray-50 to-white"
-  },
-  {
-    name: "Gói Tháng",
-    price: "119.000",
+    name: "Gói 1 Tháng",
+    price: "39.000",
     period: "tháng",
     features: [
-      "Tất cả tính năng miễn phí",
-      "1 lượt tư vấn/tháng",
-      "Thực đơn AI cá nhân hóa",
-      "Không giới hạn hồ sơ y tế",
-      "Nhắc nhở thông minh",
-      "Hỗ trợ ưu tiên"
+      "Toàn bộ tính năng theo dõi thai kỳ",
+      "Thực đơn dinh dưỡng cá nhân hóa",
+      "Lưu hồ sơ y tế không giới hạn",
+      "Nhắc lịch khám và uống vitamin"
     ],
-    cta: "Chọn mua",
+    cta: "Chọn gói 1 tháng",
     popular: false,
     bgGradient: "from-gray-50 to-white"
   },
   {
-    name: "Gói 3 Tháng",
-    price: "339.000",
-    period: "3 tháng",
+    name: "Gói 6 Tháng",
+    price: "199.000",
+    period: "6 tháng",
     features: [
-      "Tất cả tính năng miễn phí",
-      "3 lượt tư vấn",
-      "Thực đơn AI cá nhân hóa",
-      "Không giới hạn hồ sơ y tế",
-      "Nhắc nhở thông minh",
-      "Hỗ trợ ưu tiên",
-      "Xuất dữ liệu PDF",
-      "Đồng bộ đa thiết bị"
+      "Toàn bộ tính năng của gói 1 tháng",
+      "Theo dõi xuyên suốt tam cá nguyệt",
+      "Ưu tiên hỗ trợ khi cần tư vấn",
+      "Tổng hợp tiến trình thai kỳ theo mốc",
+      "Gợi ý chăm sóc cảm xúc cá nhân hóa"
     ],
-    cta: "Đăng ký ngay",
+    cta: "Chọn gói 6 tháng",
     popular: true,
     bgGradient: "from-[#FFEBEE] to-[#FFF8E1]"
   },
   {
-    name: "Gói Thai Kỳ",
-    price: "779.000",
-    period: "9 tháng",
+    name: "Gói 1 Năm",
+    price: "399.000",
+    period: "năm",
     features: [
-      "Tất cả tính năng miễn phí",
-      "9 lượt tư vấn",
+      "Toàn bộ tính năng của gói 6 tháng",
+      "Đồng hành dài hạn trước và sau sinh",
       "Thực đơn AI cá nhân hóa",
       "Không giới hạn hồ sơ y tế",
-      "Nhắc nhở thông minh",
-      "Hỗ trợ ưu tiên",
       "Xuất dữ liệu PDF",
-      "Đồng bộ đa thiết bị"
+      "Phù hợp cho nhu cầu sử dụng lâu dài"
     ],
-    cta: "Chọn mua",
+    cta: "Chọn gói 1 năm",
     popular: false,
     bgGradient: "from-gray-50 to-white"
   }
@@ -341,9 +319,23 @@ function AnimatedCard({ children, className = "", delay = 0 }: { children: React
 }
 
 // Navigation
-function Header() {
+function Header({
+  authUser,
+  isLoggingOut,
+  onLoginClick,
+  onLogout,
+  onRegisterClick,
+}: {
+  authUser: AuthUser | null;
+  isLoggingOut: boolean;
+  onLoginClick: () => void;
+  onLogout: () => void;
+  onRegisterClick: () => void;
+}) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const displayName = getDisplayName(authUser);
+  const userInitial = getUserInitial(authUser);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -383,7 +375,7 @@ function Header() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            {['Tính năng', 'Gói Premium', 'Chuyên gia'].map((item, i) => (
+            {['Tính năng', 'Gói Premium', 'Chuyên gia'].map((item) => (
               <motion.a
                 key={item}
                 href={`#${item === 'Tính năng' ? 'features' : item === 'Gói Premium' ? 'premium' : 'experts'}`}
@@ -397,20 +389,53 @@ function Header() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-5 py-2 text-sm font-semibold text-[#FF9690] border-2 border-[#FF9690] rounded-[25px] hover:bg-[#FF9690]/10 transition-colors"
-            >
-              Đăng nhập
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05, boxShadow: "0 4px 20px rgba(255,150,144,0.4)" }}
-              whileTap={{ scale: 0.95 }}
-              className="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-[#FF9690] to-[#FF7A74] rounded-[25px]"
-            >
-              Đăng ký ngay
-            </motion.button>
+            {authUser ? (
+              <>
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-3 rounded-full border border-[#FF9690]/20 bg-white/90 px-3 py-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-md"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-[#FF9690] to-[#FFC0C0] text-sm font-extrabold text-white shadow-sm">
+                    {authUser?.avatarUrl ? (
+                      <img src={authUser.avatarUrl} alt={displayName} className="h-full w-full object-cover" />
+                    ) : (
+                      userInitial
+                    )}
+                  </div>
+                  <div className="text-left leading-tight">
+                    <div className="text-sm font-bold text-[#3E2723]">{displayName}</div>
+                  </div>
+                </Link>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={onLogout}
+                  disabled={isLoggingOut}
+                  className="px-5 py-2 text-sm font-semibold text-[#FF9690] border-2 border-[#FF9690] rounded-[25px] hover:bg-[#FF9690]/10 transition-colors disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {isLoggingOut ? 'Đang đăng xuất...' : 'Đăng xuất'}
+                </motion.button>
+              </>
+            ) : (
+              <>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={onLoginClick}
+                  className="px-5 py-2 text-sm font-semibold text-[#FF9690] border-2 border-[#FF9690] rounded-[25px] hover:bg-[#FF9690]/10 transition-colors"
+                >
+                  Đăng nhập
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05, boxShadow: '0 4px 20px rgba(255,150,144,0.4)' }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={onRegisterClick}
+                  className="px-5 py-2 text-sm font-semibold text-white bg-linear-to-r from-[#FF9690] to-[#FF7A74] rounded-[25px]"
+                >
+                  Đăng ký ngay
+                </motion.button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -433,12 +458,57 @@ function Header() {
                 <a href="#premium" className="text-[#757575] font-medium py-2" onClick={() => setMobileMenuOpen(false)}>Gói Premium</a>
                 <a href="#experts" className="text-[#757575] font-medium py-2" onClick={() => setMobileMenuOpen(false)}>Chuyên gia</a>
                 <div className="flex flex-col gap-3 pt-2">
-                  <button className="w-full py-2.5 text-sm font-semibold text-[#FF9690] border-2 border-[#FF9690] rounded-[25px]">
-                    Đăng nhập
-                  </button>
-                  <button className="w-full py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-[#FF9690] to-[#FF7A74] rounded-[25px]">
-                    Đăng ký ngay
-                  </button>
+                  {authUser ? (
+                    <>
+                      <Link
+                        href="/profile"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 rounded-2xl bg-white/80 px-4 py-3 shadow-sm transition-colors hover:bg-white"
+                      >
+                        <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-[#FF9690] to-[#FFC0C0] text-sm font-extrabold text-white shadow-sm">
+                          {authUser?.avatarUrl ? (
+                            <img src={authUser.avatarUrl} alt={displayName} className="h-full w-full object-cover" />
+                          ) : (
+                            userInitial
+                          )}
+                        </div>
+                        <div className="text-left leading-tight">
+                          <div className="text-sm font-bold text-[#3E2723]">{displayName}</div>
+                        </div>
+                      </Link>
+                      <button
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          onLogout();
+                        }}
+                        disabled={isLoggingOut}
+                        className="w-full py-2.5 text-sm font-semibold text-[#FF9690] border-2 border-[#FF9690] rounded-[25px] disabled:cursor-not-allowed disabled:opacity-70"
+                      >
+                        {isLoggingOut ? 'Đang đăng xuất...' : 'Đăng xuất'}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          onLoginClick();
+                        }}
+                        className="w-full py-2.5 text-sm font-semibold text-[#FF9690] border-2 border-[#FF9690] rounded-[25px]"
+                      >
+                        Đăng nhập
+                      </button>
+                      <button
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          onRegisterClick();
+                        }}
+                        className="w-full py-2.5 text-sm font-semibold text-white bg-linear-to-r from-[#FF9690] to-[#FF7A74] rounded-[25px]"
+                      >
+                        Đăng ký ngay
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -450,15 +520,24 @@ function Header() {
 }
 
 // Hero Section
-function Hero() {
+function Hero({
+  authUser,
+  onExploreFeatures,
+  onPrimaryAction,
+}: {
+  authUser: AuthUser | null;
+  onExploreFeatures: () => void;
+  onPrimaryAction: () => void;
+}) {
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 500], [0, 150]);
   const y2 = useTransform(scrollY, [0, 500], [0, -100]);
+  const displayName = getDisplayName(authUser);
 
   return (
     <section className="relative min-h-screen pt-24 overflow-hidden">
       {/* Background Elements */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#FFEBEE] via-[#FFF8E1] to-[#FFEBEE]" />
+      <div className="absolute inset-0 bg-linear-to-b from-[#FFEBEE] via-[#FFF8E1] to-[#FFEBEE]" />
       <motion.div
         style={{ y: y1 }}
         className="absolute top-32 left-8 w-56 h-56 bg-[#FFC0C0]/30 rounded-full blur-3xl"
@@ -560,13 +639,15 @@ function Hero() {
               <motion.button
                 whileHover={{ scale: 1.05, boxShadow: "0 8px 25px rgba(255,150,144,0.4)" }}
                 whileTap={{ scale: 0.98 }}
-                className="px-7 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-[#FF9690] to-[#FF7A74] rounded-[25px] shadow-md"
+                onClick={onPrimaryAction}
+                className="px-7 py-2.5 text-sm font-semibold text-white bg-linear-to-r from-[#FF9690] to-[#FF7A74] rounded-[25px] shadow-md"
               >
-                Bắt đầu miễn phí
+                {authUser ? 'Tiếp tục trải nghiệm' : 'Bắt đầu miễn phí'}
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05, backgroundColor: "rgba(255,150,144,0.1)" }}
                 whileTap={{ scale: 0.98 }}
+                onClick={onExploreFeatures}
                 className="px-7 py-2.5 text-sm font-semibold text-[#FF9690] border-2 border-[#FF9690] rounded-[25px] flex items-center justify-center gap-2"
               >
                 <span>Khám phá tính năng</span>
@@ -600,6 +681,18 @@ function Hero() {
                 </motion.div>
               ))}
             </motion.div>
+
+            {authUser && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.9 }}
+                className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/85 px-4 py-2 text-sm text-[#3E2723] shadow-sm"
+              >
+                <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#8FD4BC]" />
+                Xin chào {displayName}, phiên đăng nhập của bạn đã sẵn sàng.
+              </motion.div>
+            )}
           </motion.div>
 
           {/* Right Content - Dashboard Mockup */}
@@ -620,12 +713,12 @@ function Hero() {
                   <div className="text-xs text-[#999]">Xin chào,</div>
                   <div className="text-lg font-bold text-[#3E2723]">Mẹ Minh Anh <span className="text-[#FF9690]">💕</span></div>
                 </div>
-                <div className="w-9 h-9 bg-gradient-to-br from-[#FF9690] to-[#FFC0C0] rounded-full flex items-center justify-center text-white font-bold text-sm">
+                <div className="w-9 h-9 bg-linear-to-br from-[#FF9690] to-[#FFC0C0] rounded-full flex items-center justify-center text-white font-bold text-sm">
                   M
                 </div>
               </div>
 
-              <div className="bg-gradient-to-r from-[#FFEBEE] to-[#FFF3E0] rounded-xl p-4 mb-5">
+              <div className="bg-linear-to-r from-[#FFEBEE] to-[#FFF3E0] rounded-xl p-4 mb-5">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-semibold text-[#3E2723]">Tuần thai hiện tại</span>
                   <span className="text-xl font-bold text-[#FF9690]">24</span>
@@ -636,7 +729,7 @@ function Hero() {
                     whileInView={{ width: '60%' }}
                     viewport={{ once: true }}
                     transition={{ duration: 1, delay: 0.5 }}
-                    className="h-full bg-gradient-to-r from-[#FF9690] to-[#FFC0C0] rounded-full"
+                    className="h-full bg-linear-to-r from-[#FF9690] to-[#FFC0C0] rounded-full"
                   />
                 </div>
                 <div className="flex justify-between mt-1.5 text-xs text-[#999]">
@@ -738,7 +831,7 @@ function Features() {
             <AnimatedCard
               key={feature.id}
               delay={index * 0.1}
-              className={`group relative bg-gradient-to-br ${feature.bgGradient} rounded-2xl p-6 hover:shadow-lg transition-shadow duration-300`}
+              className={`group relative bg-linear-to-br ${feature.bgGradient} rounded-2xl p-6 hover:shadow-lg transition-shadow duration-300`}
             >
               <motion.div
                 whileHover={{ scale: 1.05 }}
@@ -778,112 +871,56 @@ function Features() {
 
 // Premium Section - 2 columns: Free vs Paid
 function Premium() {
-  const [activePaidPlan, setActivePaidPlan] = useState(2);
-
-  const freePlan = premiumPlans[0];
-  const paidPlans = premiumPlans.slice(1);
-  const paidPlan = paidPlans[activePaidPlan - 1];
-
   return (
-    <section id="premium" className="py-16 lg:py-24 bg-gradient-to-b from-[#FFEBEE] via-[#FFF5F5] to-[#FFEBEE]">
-      <div className="max-w-5xl mx-auto px-6 lg:px-8">
+    <section id="premium" className="py-16 lg:py-24 bg-linear-to-b from-[#FFEBEE] via-[#FFF5F5] to-[#FFEBEE]">
+      <div className="max-w-6xl mx-auto px-6 lg:px-8">
         {/* Section Header */}
         <AnimatedSection className="text-center mb-10">
           <h2 className="text-2xl lg:text-3xl font-bold text-[#3E2723] mb-3">
             Bảng giá Premium
           </h2>
           <p className="text-base text-[#757575]">
-            So sánh các gói dịch vụ
+            Chọn gói phù hợp với thời gian đồng hành bạn cần
           </p>
         </AnimatedSection>
 
-        {/* 2 Columns Layout */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Left Column - Miễn phí */}
-          <AnimatedCard delay={0.1} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
-            <h3 className="text-xl font-bold text-[#3E2723] mb-2">{freePlan.name}</h3>
-            <div className="flex items-baseline gap-1 mb-2">
-              <span className="text-3xl font-bold text-black">{freePlan.price}</span>
-              <span className="text-sm text-gray-500">₫/{freePlan.period}</span>
-            </div>
-            <p className="text-sm text-gray-500 mb-4">Sử dụng miễn phí vĩnh viễn</p>
-
-            <div className="border-t border-gray-100 pt-4">
-              <h4 className="text-sm font-semibold text-[#3E2723] mb-3">Quyền lợi:</h4>
-              <div className="space-y-2">
-                {freePlan.features.map((feature, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -10 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.05 }}
-                    className="flex items-center gap-3"
-                  >
-                    <div className="w-5 h-5 bg-[#B8E6D4] rounded-full flex items-center justify-center">
-                      <CheckIcon className="w-3 h-3 text-white" />
-                    </div>
-                    <span className="text-sm text-gray-700">{feature}</span>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </AnimatedCard>
-
-          {/* Right Column - Paid Plans */}
-          <AnimatedCard delay={0.2} className="space-y-4">
-            {/* Tabs for paid plans */}
-            <div className="flex gap-2 mb-4">
-              {paidPlans.map((p, index) => (
-                <motion.button
-                  key={index}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setActivePaidPlan(index + 1)}
-                  className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
-                    activePaidPlan === index + 1
-                      ? 'bg-[#FF9690] text-white shadow-md'
-                      : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-                  }`}
-                >
-                  {p.name}
-                </motion.button>
-              ))}
-            </div>
-
-            {/* Paid Plan Display */}
-            <motion.div
-              key={activePaidPlan}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="bg-white rounded-2xl p-6 shadow-lg border-2 border-[#FF9690]"
+        <div className="grid gap-6 md:grid-cols-3">
+          {premiumPlans.map((plan, index) => (
+            <AnimatedCard
+              key={plan.name}
+              delay={index * 0.1}
+              className={`relative overflow-hidden rounded-2xl border p-6 shadow-lg ${
+                plan.popular
+                  ? 'border-[#FF9690] bg-linear-to-b from-white to-[#FFF7EF]'
+                  : 'border-gray-200 bg-white'
+              }`}
             >
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-xl font-bold text-[#3E2723]">{paidPlan.name}</h3>
-                  <div className="flex items-baseline gap-1 mt-1">
-                    <span className="text-3xl font-bold text-black">{paidPlan.price}</span>
-                    <span className="text-sm text-gray-500">₫/{paidPlan.period}</span>
-                  </div>
+              {plan.popular && (
+                <div className="absolute right-4 top-4 rounded-full bg-[#FF9690] px-3 py-1 text-xs font-bold text-white">
+                  Phổ biến
                 </div>
-                {paidPlan.popular && (
-                  <span className="bg-[#FF9690] text-white text-xs font-bold px-3 py-1 rounded-full">
-                    Phổ biến
-                  </span>
-                )}
+              )}
+
+              <div className="mb-5">
+                <h3 className="text-xl font-bold text-[#3E2723] mb-2">{plan.name}</h3>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-bold text-black">{plan.price}</span>
+                  <span className="text-sm text-gray-500">₫/{plan.period}</span>
+                </div>
               </div>
 
-              <p className="text-sm text-gray-500 mb-4">
-                {paidPlan.name === 'Gói Tháng' && '1 lượt tư vấn/tháng'}
-                {paidPlan.name === 'Gói 3 Tháng' && '3 lượt tư vấn'}
-                {paidPlan.name === 'Gói Thai Kỳ' && '9 lượt tư vấn'}
-              </p>
+              <div className="mb-5 rounded-xl bg-linear-to-r from-[#FFEBEE] to-[#FFF3E0] p-4">
+                <p className="text-sm font-medium text-[#3E2723]">
+                  {plan.name === 'Gói 1 Tháng' && 'Phù hợp để trải nghiệm nhanh toàn bộ hệ sinh thái PregTap.'}
+                  {plan.name === 'Gói 6 Tháng' && 'Lựa chọn cân bằng chi phí và thời gian đồng hành trong thai kỳ.'}
+                  {plan.name === 'Gói 1 Năm' && 'Tối ưu nhất nếu bạn muốn sử dụng dài hạn và lưu trữ đầy đủ dữ liệu.'}
+                </p>
+              </div>
 
               <div className="border-t border-gray-100 pt-4">
                 <h4 className="text-sm font-semibold text-[#3E2723] mb-3">Quyền lợi:</h4>
                 <div className="space-y-2">
-                  {paidPlan.features.map((feature, i) => (
+                  {plan.features.map((feature, i) => (
                     <motion.div
                       key={i}
                       initial={{ opacity: 0, x: -10 }}
@@ -892,7 +929,7 @@ function Premium() {
                       transition={{ delay: i * 0.05 }}
                       className="flex items-center gap-3"
                     >
-                      <div className="w-5 h-5 bg-[#FF9690] rounded-full flex items-center justify-center">
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center ${plan.popular ? 'bg-[#FF9690]' : 'bg-[#B8E6D4]'}`}>
                         <CheckIcon className="w-3 h-3 text-white" />
                       </div>
                       <span className="text-sm text-gray-700">{feature}</span>
@@ -900,8 +937,11 @@ function Premium() {
                   ))}
                 </div>
               </div>
-            </motion.div>
-          </AnimatedCard>
+              <button className={`mt-6 w-full rounded-[25px] px-5 py-3 text-sm font-semibold transition-colors ${plan.popular ? 'bg-linear-to-r from-[#FF9690] to-[#FF7A74] text-white shadow-md' : 'border-2 border-[#FF9690] text-[#FF9690] hover:bg-[#FF9690]/10'}`}>
+                {plan.cta}
+              </button>
+            </AnimatedCard>
+          ))}
         </div>
       </div>
     </section>
@@ -939,11 +979,11 @@ function Experts() {
             <AnimatedCard
               key={index}
               delay={index * 0.1}
-              className="bg-gradient-to-br from-[#FFEBEE] to-white rounded-2xl p-6 text-center shadow-md hover:shadow-lg transition-shadow"
+              className="bg-linear-to-br from-[#FFEBEE] to-white rounded-2xl p-6 text-center shadow-md hover:shadow-lg transition-shadow"
             >
               <motion.div
                 whileHover={{ scale: 1.1 }}
-                className="w-20 h-20 bg-gradient-to-br from-[#FF9690]/20 to-[#FFC0C0]/20 rounded-full flex items-center justify-center text-4xl mx-auto mb-4"
+                className="w-20 h-20 bg-linear-to-br from-[#FF9690]/20 to-[#FFC0C0]/20 rounded-full flex items-center justify-center text-4xl mx-auto mb-4"
               >
                 {expert.avatar}
               </motion.div>
@@ -966,9 +1006,9 @@ function Experts() {
 }
 
 // CTA Section
-function CTA() {
+function CTA({ authUser, onPrimaryAction }: { authUser: AuthUser | null; onPrimaryAction: () => void }) {
   return (
-    <section className="py-16 lg:py-24 bg-gradient-to-r from-[#FF9690] to-[#FF7A74] relative overflow-hidden">
+    <section className="py-16 lg:py-24 bg-linear-to-r from-[#FF9690] to-[#FF7A74] relative overflow-hidden">
       {/* Decorative Elements */}
       <motion.div
         animate={{ scale: [1, 1.1, 1] }}
@@ -991,9 +1031,10 @@ function CTA() {
         <motion.button
           whileHover={{ scale: 1.05, boxShadow: "0 10px 40px rgba(0,0,0,0.2)" }}
           whileTap={{ scale: 0.98 }}
+          onClick={onPrimaryAction}
           className="px-8 py-3 bg-white text-[#FF9690] font-semibold text-sm rounded-[25px]"
         >
-          Tải miễn phí
+          {authUser ? 'Khám phá tính năng' : 'Tạo tài khoản miễn phí'}
         </motion.button>
       </AnimatedSection>
     </section>
@@ -1090,15 +1131,102 @@ function Footer() {
 
 // Main Page Component
 export default function Home() {
+  const [authMode, setAuthMode] = useState<AuthMode>('login');
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  useEffect(() => {
+    async function loadCurrentUser() {
+      try {
+        const response = await fetch('/api/auth/me', {
+          cache: 'no-store',
+        });
+
+        if (!response.ok) {
+          setAuthUser(null);
+          return;
+        }
+
+        const payload = (await response.json()) as ApiResponse<AuthUser>;
+        setAuthUser(payload.success && payload.data ? payload.data : null);
+      } catch {
+        setAuthUser(null);
+      }
+    }
+
+    void loadCurrentUser();
+  }, []);
+
+  function openAuthModal(mode: AuthMode) {
+    setAuthMode(mode);
+    setIsAuthModalOpen(true);
+  }
+
+  function scrollToSection(sectionId: string) {
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  async function handleLogout() {
+    setIsLoggingOut(true);
+
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+      });
+    } finally {
+      setAuthUser(null);
+      setIsLoggingOut(false);
+    }
+  }
+
+  function handleAuthSuccess(payload: AuthResponse) {
+    setAuthUser(payload.user);
+  }
+
   return (
     <main className="min-h-screen">
-      <Header />
-      <Hero />
+      <Header
+        authUser={authUser}
+        isLoggingOut={isLoggingOut}
+        onLoginClick={() => openAuthModal('login')}
+        onLogout={handleLogout}
+        onRegisterClick={() => openAuthModal('register')}
+      />
+      <Hero
+        authUser={authUser}
+        onExploreFeatures={() => scrollToSection('features')}
+        onPrimaryAction={() => {
+          if (authUser) {
+            scrollToSection('features');
+            return;
+          }
+
+          openAuthModal('register');
+        }}
+      />
       <Features />
       <Premium />
       <Experts />
-      <CTA />
+      <CTA
+        authUser={authUser}
+        onPrimaryAction={() => {
+          if (authUser) {
+            scrollToSection('features');
+            return;
+          }
+
+          openAuthModal('register');
+        }}
+      />
       <Footer />
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        mode={authMode}
+        onClose={() => setIsAuthModalOpen(false)}
+        onModeChange={setAuthMode}
+        onSuccess={handleAuthSuccess}
+      />
     </main>
   );
 }
