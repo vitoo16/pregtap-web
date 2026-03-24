@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 
 import { type ApiResponse, type AuthUser, type ProfileFormValues } from '@/lib/auth';
+import { extractSubscriptionStatus, formatDateVi, getPlanLabel, type SubscriptionStatus } from '@/lib/subscription';
 
 const initialFormValues: ProfileFormValues = {
   fullName: '',
@@ -38,6 +39,7 @@ export default function ProfilePage() {
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
 
   useEffect(() => {
     async function loadProfile() {
@@ -60,6 +62,15 @@ export default function ProfilePage() {
         setUser(payload.data);
         setForm(mapUserToForm(payload.data));
         setAvatarPreview(payload.data.avatarUrl ?? null);
+
+        const subscriptionResponse = await fetch('/api/subscriptions/status', {
+          cache: 'no-store',
+        });
+        const subscriptionPayload = (await subscriptionResponse.json()) as ApiResponse<unknown>;
+
+        if (subscriptionResponse.ok && subscriptionPayload.success) {
+          setSubscriptionStatus(extractSubscriptionStatus(subscriptionPayload.data));
+        }
       } catch {
         setFeedback({
           type: 'error',
@@ -160,6 +171,12 @@ export default function ProfilePage() {
 
             <div className="flex flex-wrap gap-3">
               <Link
+                href="/payment/history"
+                className="rounded-full border-2 border-[#F9B5A7] px-5 py-2 text-sm font-semibold text-[#B5655C] transition-colors hover:bg-[#FFF0ED]"
+              >
+                Lịch sử thanh toán
+              </Link>
+              <Link
                 href="/"
                 className="rounded-full border-2 border-[#FF9690] px-5 py-2 text-sm font-semibold text-[#FF9690] transition-colors hover:bg-[#FF9690]/10"
               >
@@ -219,6 +236,19 @@ export default function ProfilePage() {
                     <div className="rounded-2xl bg-white px-4 py-3 shadow-sm">
                       <div className="text-[11px] uppercase tracking-[0.16em] text-[#999]">SĐT</div>
                       <div className="mt-1 text-sm font-semibold text-[#3E2723]">{user.isPhoneVerified ? 'Đã xác minh' : 'Chưa xác minh'}</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 rounded-2xl bg-white px-4 py-4 text-left shadow-sm">
+                    <div className="text-[11px] uppercase tracking-[0.16em] text-[#999]">Gói hiện tại</div>
+                    <div className="mt-2 text-base font-bold text-[#3E2723]">
+                      {subscriptionStatus?.isPremium ? getPlanLabel(subscriptionStatus.plan) : 'Bạn chưa active gói Premium'}
+                    </div>
+                    <div className="mt-2 text-sm text-[#757575]">
+                      Hết hạn: {formatDateVi(subscriptionStatus?.endDate)}
+                    </div>
+                    <div className="mt-1 text-sm text-[#757575]">
+                      Còn lại: {subscriptionStatus?.daysRemaining != null ? `${subscriptionStatus.daysRemaining} ngày` : 'Chưa có dữ liệu'}
                     </div>
                   </div>
                 </div>

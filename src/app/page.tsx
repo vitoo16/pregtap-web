@@ -5,7 +5,17 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, useInView, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 
 import { AuthModal } from '@/components/auth-modal';
+import { ToastNotice } from '@/components/toast-notice';
 import { type ApiResponse, type AuthResponse, type AuthUser } from '@/lib/auth';
+import {
+  extractSubscriptionStatus,
+  formatCurrencyVnd,
+  getPlanLabel,
+  type PurchaseSubscriptionResponse,
+  type SubscriptionPlan,
+  type SubscriptionPlanCode,
+  type SubscriptionStatus,
+} from '@/lib/subscription';
 
 // Icons as SVG components
 
@@ -233,54 +243,51 @@ const features = [
   }
 ];
 
-// Premium plans
-const premiumPlans = [
-  {
-    name: "Gói 1 Tháng",
-    price: "39.000",
-    period: "tháng",
+const premiumPlanContent: Record<SubscriptionPlanCode, {
+  blurb: string;
+  cta: string;
+  features: string[];
+  popular: boolean;
+}> = {
+  Monthly: {
+    blurb: 'Phù hợp để trải nghiệm nhanh toàn bộ hệ sinh thái PregTap.',
+    cta: 'Mua gói 1 tháng',
     features: [
-      "Toàn bộ tính năng theo dõi thai kỳ",
-      "Thực đơn dinh dưỡng cá nhân hóa",
-      "Lưu hồ sơ y tế không giới hạn",
-      "Nhắc lịch khám và uống vitamin"
+      'Toàn bộ tính năng theo dõi thai kỳ',
+      'Thực đơn dinh dưỡng cá nhân hóa',
+      'Lưu hồ sơ y tế không giới hạn',
+      'Nhắc lịch khám và uống vitamin',
     ],
-    cta: "Chọn gói 1 tháng",
     popular: false,
-    bgGradient: "from-gray-50 to-white"
   },
-  {
-    name: "Gói 6 Tháng",
-    price: "199.000",
-    period: "6 tháng",
+  SixMonths: {
+    blurb: 'Lựa chọn cân bằng chi phí và thời gian đồng hành trong thai kỳ.',
+    cta: 'Mua gói 6 tháng',
     features: [
-      "Toàn bộ tính năng của gói 1 tháng",
-      "Theo dõi xuyên suốt tam cá nguyệt",
-      "Ưu tiên hỗ trợ khi cần tư vấn",
-      "Tổng hợp tiến trình thai kỳ theo mốc",
-      "Gợi ý chăm sóc cảm xúc cá nhân hóa"
+      'Toàn bộ tính năng của gói 1 tháng',
+      'Theo dõi xuyên suốt tam cá nguyệt',
+      'Ưu tiên hỗ trợ khi cần tư vấn',
+      'Tổng hợp tiến trình thai kỳ theo mốc',
+      'Gợi ý chăm sóc cảm xúc cá nhân hóa',
     ],
-    cta: "Chọn gói 6 tháng",
     popular: true,
-    bgGradient: "from-[#FFEBEE] to-[#FFF8E1]"
   },
-  {
-    name: "Gói 1 Năm",
-    price: "399.000",
-    period: "năm",
+  Yearly: {
+    blurb: 'Tối ưu nhất nếu bạn muốn sử dụng dài hạn và lưu trữ đầy đủ dữ liệu.',
+    cta: 'Mua gói 1 năm',
     features: [
-      "Toàn bộ tính năng của gói 6 tháng",
-      "Đồng hành dài hạn trước và sau sinh",
-      "Thực đơn AI cá nhân hóa",
-      "Không giới hạn hồ sơ y tế",
-      "Xuất dữ liệu PDF",
-      "Phù hợp cho nhu cầu sử dụng lâu dài"
+      'Toàn bộ tính năng của gói 6 tháng',
+      'Đồng hành dài hạn trước và sau sinh',
+      'Thực đơn AI cá nhân hóa',
+      'Không giới hạn hồ sơ y tế',
+      'Xuất dữ liệu PDF',
+      'Phù hợp cho nhu cầu sử dụng lâu dài',
     ],
-    cta: "Chọn gói 1 năm",
     popular: false,
-    bgGradient: "from-gray-50 to-white"
-  }
-];
+  },
+};
+
+const premiumPlanOrder: SubscriptionPlanCode[] = ['Monthly', 'SixMonths', 'Yearly'];
 
 // Animated Section component
 function AnimatedSection({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -533,259 +540,262 @@ function Hero({
   const y1 = useTransform(scrollY, [0, 500], [0, 150]);
   const y2 = useTransform(scrollY, [0, 500], [0, -100]);
   const displayName = getDisplayName(authUser);
+  const userInitial = getUserInitial(authUser);
 
   return (
-    <section className="relative min-h-screen pt-24 overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 bg-linear-to-b from-[#FFEBEE] via-[#FFF8E1] to-[#FFEBEE]" />
+    <section className="relative overflow-hidden pt-24">
+      <div className="absolute inset-0 bg-linear-to-b from-[#FFF1F2] via-[#FFF9F6] to-[#FFF4F2]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_18%,rgba(255,190,194,0.28),transparent_28%),radial-gradient(circle_at_80%_20%,rgba(255,226,198,0.28),transparent_26%),radial-gradient(circle_at_75%_72%,rgba(223,241,238,0.38),transparent_24%)]" />
       <motion.div
         style={{ y: y1 }}
-        className="absolute top-32 left-8 w-56 h-56 bg-[#FFC0C0]/30 rounded-full blur-3xl"
+        className="absolute -left-8 top-24 h-72 w-72 rounded-full bg-[#FFC8C8]/45 blur-3xl"
       />
       <motion.div
         style={{ y: y2 }}
-        className="absolute bottom-40 right-8 w-72 h-72 bg-[#FF9690]/20 rounded-full blur-3xl"
+        className="absolute right-0 top-28 h-80 w-80 rounded-full bg-[#FFE8D2]/45 blur-3xl"
+      />
+      <motion.div
+        style={{ y: y1 }}
+        className="absolute bottom-12 left-1/2 hidden h-52 w-52 -translate-x-1/2 rounded-full bg-[#DFF1EE]/55 blur-3xl lg:block"
       />
 
-      {/* Floating Elements */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1, y: [0, -15, 0] }}
-        transition={{ opacity: { delay: 0.5, duration: 0.5 }, repeat: Infinity, duration: 3, ease: "easeInOut" }}
-        className="absolute top-36 left-[5%] hidden lg:block"
-      >
-        <span className="text-3xl filter drop-shadow-sm">🍅</span>
-      </motion.div>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1, y: [0, -10, 0] }}
-        transition={{ opacity: { delay: 0.6, duration: 0.5 }, repeat: Infinity, duration: 3.5, ease: "easeInOut", delay: 0.5 }}
-        className="absolute top-52 right-[8%] hidden lg:block"
-      >
-        <span className="text-2xl filter drop-shadow-sm">💕</span>
-      </motion.div>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1, y: [0, -12, 0] }}
-        transition={{ opacity: { delay: 0.7, duration: 0.5 }, repeat: Infinity, duration: 4, ease: "easeInOut", delay: 1 }}
-        className="absolute top-72 left-[5%] hidden lg:block"
-      >
-        <span className="text-xl filter drop-shadow-sm">📅</span>
-      </motion.div>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1, y: [0, -8, 0] }}
-        transition={{ opacity: { delay: 0.8, duration: 0.5 }, repeat: Infinity, duration: 3.2, ease: "easeInOut", delay: 1.5 }}
-        className="absolute bottom-40 right-[10%] hidden lg:block"
-      >
-        <span className="text-3xl filter drop-shadow-sm">👶</span>
-      </motion.div>
-
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-8 py-12 lg:py-20">
-        <div className="grid lg:grid-cols-2 gap-10 lg:gap-12 items-center">
-          {/* Left Content */}
+      <div className="relative mx-auto max-w-7xl px-6 pb-18 pt-10 lg:px-8 lg:pb-24 lg:pt-16">
+        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-14">
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
+            initial={{ opacity: 0, x: -28 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center lg:text-left"
+            transition={{ duration: 0.6 }}
+            className="relative z-10 max-w-xl"
           >
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-1.5 rounded-full shadow-sm mb-6"
+              transition={{ delay: 0.1 }}
+              className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/85 px-4 py-2 text-sm text-[#7A6C68] shadow-[0_8px_24px_rgba(62,39,35,0.06)] backdrop-blur-sm"
             >
-              <motion.span
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
-                className="w-2 h-2 bg-[#FF9690] rounded-full"
-              />
-              <span className="text-sm text-[#757575]">Sẵn sàng cho hành trình làm mẹ</span>
+              <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#FF9690]" />
+              Dành cho mẹ bầu yêu cảm giác dịu dàng nhưng rõ ràng
             </motion.div>
 
             <motion.h1
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-              className="text-4xl sm:text-5xl lg:text-5xl font-extrabold text-[#3E2723] leading-tight mb-5"
+              transition={{ delay: 0.18, duration: 0.7 }}
+              className="mt-7 text-5xl font-black leading-[1.03] tracking-[-0.045em] text-[#3E2723] sm:text-6xl lg:text-[5.6rem]"
             >
-              Người bạn đồng hành
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-                className="block text-[#FF9690]"
-              >
-                thấu hiểu từng nhịp đập thai kỳ
-              </motion.span>
+              Dịu dàng với mắt nhìn,
+              <span className="mt-2 block text-[#FF9690]">ấm áp với cảm xúc</span>
+              <span className="mt-2 block">và gọn gàng cho mẹ bầu</span>
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="text-base text-[#757575] mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed"
+              transition={{ delay: 0.28 }}
+              className="mt-7 max-w-lg text-[1.04rem] leading-8 text-[#776B68]"
             >
-              Nền tảng chăm sóc thai kỳ toàn diện. Bắt đầu hành trình làm mẹ an tâm, khoa học và ngập tràn niềm vui.
+              PregTap giúp bạn theo dõi thai kỳ, dinh dưỡng, cảm xúc và hồ sơ sức khỏe trong một không gian nhẹ nhàng, nữ tính, dễ chịu và đủ chỉn chu để luôn thấy an tâm mỗi lần mở lên.
             </motion.p>
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start"
+              transition={{ delay: 0.36 }}
+              className="mt-8 flex flex-wrap gap-3"
+            >
+              {['Theo dõi tuần thai', 'Meal plan nhẹ nhàng', 'Hồ sơ cá nhân xinh gọn'].map((item) => (
+                <div key={item} className="rounded-full bg-white/82 px-4 py-2 text-sm font-semibold text-[#6F6360] shadow-[0_8px_20px_rgba(62,39,35,0.05)] ring-1 ring-white/70 backdrop-blur-sm">
+                  {item}
+                </div>
+              ))}
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.44 }}
+              className="mt-9 flex flex-col gap-3 sm:flex-row"
             >
               <motion.button
-                whileHover={{ scale: 1.05, boxShadow: "0 8px 25px rgba(255,150,144,0.4)" }}
+                whileHover={{ y: -2, boxShadow: '0 14px 28px rgba(255,150,144,0.28)' }}
                 whileTap={{ scale: 0.98 }}
                 onClick={onPrimaryAction}
-                className="px-7 py-2.5 text-sm font-semibold text-white bg-linear-to-r from-[#FF9690] to-[#FF7A74] rounded-[25px] shadow-md"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-linear-to-r from-[#FF9690] to-[#FF7A74] px-7 py-3.5 text-sm font-bold text-white shadow-[0_10px_22px_rgba(255,150,144,0.25)]"
               >
-                {authUser ? 'Tiếp tục trải nghiệm' : 'Bắt đầu miễn phí'}
+                <span>{authUser ? 'Tiếp tục trải nghiệm' : 'Bắt đầu miễn phí'}</span>
+                <span>→</span>
               </motion.button>
               <motion.button
-                whileHover={{ scale: 1.05, backgroundColor: "rgba(255,150,144,0.1)" }}
+                whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={onExploreFeatures}
-                className="px-7 py-2.5 text-sm font-semibold text-[#FF9690] border-2 border-[#FF9690] rounded-[25px] flex items-center justify-center gap-2"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-[#F1C6C2] bg-white/76 px-7 py-3.5 text-sm font-bold text-[#A05D58] shadow-[0_8px_20px_rgba(62,39,35,0.05)]"
               >
                 <span>Khám phá tính năng</span>
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </motion.button>
             </motion.div>
 
-            {/* Stats */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.7 }}
-              className="mt-10 flex flex-wrap gap-6 justify-center lg:justify-start"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.52 }}
+              className="mt-10 grid grid-cols-3 gap-4"
             >
               {[
-                { value: '50K+', label: 'Mẹ bầu tin tưởng' },
-                { value: '4.9', label: 'Đánh giá sao' },
-                { value: '280', label: 'Ngày thai kỳ' }
-              ].map((stat, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 + i * 0.1 }}
-                  className="text-center"
-                >
-                  <div className="text-2xl font-bold text-[#FF9690]">{stat.value}</div>
-                  <div className="text-xs text-[#757575]">{stat.label}</div>
-                </motion.div>
+                { value: '50K+', label: 'mẹ bầu tin tưởng' },
+                { value: '4.9', label: 'đánh giá yêu thích' },
+                { value: '24/7', label: 'một chạm là xem được' },
+              ].map((stat) => (
+                <div key={stat.label} className="rounded-[26px] bg-white/72 px-4 py-4 shadow-[0_10px_24px_rgba(62,39,35,0.05)] ring-1 ring-white/75 backdrop-blur-sm">
+                  <div className="text-2xl font-black text-[#3E2723]">{stat.value}</div>
+                  <div className="mt-1 text-xs leading-5 text-[#7A6E6B]">{stat.label}</div>
+                </div>
               ))}
             </motion.div>
 
-            {authUser && (
+            {authUser ? (
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.9 }}
-                className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/85 px-4 py-2 text-sm text-[#3E2723] shadow-sm"
+                transition={{ delay: 0.6 }}
+                className="mt-6 inline-flex max-w-full items-center gap-3 rounded-full bg-white/82 px-4 py-2.5 text-sm text-[#4E403D] shadow-[0_10px_24px_rgba(62,39,35,0.05)] ring-1 ring-white/75"
               >
-                <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#8FD4BC]" />
-                Xin chào {displayName}, phiên đăng nhập của bạn đã sẵn sàng.
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-[#FF9690] to-[#FFC7C1] text-xs font-extrabold text-white">
+                  {userInitial}
+                </span>
+                Chào {displayName}, mọi thứ hôm nay đã được sắp sẵn thật dịu dàng cho bạn.
               </motion.div>
-            )}
+            ) : null}
           </motion.div>
 
-          {/* Right Content - Dashboard Mockup */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative"
+            initial={{ opacity: 0, x: 28 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, delay: 0.14 }}
+            className="relative mx-auto w-full max-w-170"
           >
+            <div className="absolute inset-x-8 top-8 h-[84%] rounded-[42px] bg-white/45 blur-3xl" />
+
             <motion.div
-              whileHover={{ rotate: 0, scale: 1.02 }}
-              animate={{ rotate: 1 }}
-              transition={{ repeat: Infinity, duration: 5, repeatType: "reverse" }}
-              className="bg-white rounded-2xl shadow-lg p-5 lg:p-6"
+              whileHover={{ y: -3 }}
+              className="relative overflow-hidden rounded-[42px] border border-white/80 bg-white/84 p-5 shadow-[0_26px_60px_rgba(62,39,35,0.12)] backdrop-blur-xl lg:p-6"
             >
-              <div className="flex items-center justify-between mb-5">
+              <div className="absolute inset-x-0 top-0 h-30 bg-linear-to-r from-[#FFF1EF] via-[#FFF8F5] to-[#EEF8F4]" />
+              <div className="relative flex items-center justify-between gap-4">
                 <div>
-                  <div className="text-xs text-[#999]">Xin chào,</div>
-                  <div className="text-lg font-bold text-[#3E2723]">Mẹ Minh Anh <span className="text-[#FF9690]">💕</span></div>
+                  <div className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#C79B97]">PregTap diary</div>
+                  <div className="mt-3 text-[2rem] font-black leading-none text-[#3E2723]">Một góc rất riêng của mẹ</div>
+                  <div className="mt-2 text-sm text-[#776B68]">Mềm mại, dễ nhìn và luôn nhắc đúng điều bạn cần.</div>
                 </div>
-                <div className="w-9 h-9 bg-linear-to-br from-[#FF9690] to-[#FFC0C0] rounded-full flex items-center justify-center text-white font-bold text-sm">
-                  M
-                </div>
-              </div>
-
-              <div className="bg-linear-to-r from-[#FFEBEE] to-[#FFF3E0] rounded-xl p-4 mb-5">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-semibold text-[#3E2723]">Tuần thai hiện tại</span>
-                  <span className="text-xl font-bold text-[#FF9690]">24</span>
-                </div>
-                <div className="h-2.5 bg-white rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    whileInView={{ width: '60%' }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1, delay: 0.5 }}
-                    className="h-full bg-linear-to-r from-[#FF9690] to-[#FFC0C0] rounded-full"
-                  />
-                </div>
-                <div className="flex justify-between mt-1.5 text-xs text-[#999]">
-                  <span>Tuần 1</span>
-                  <span>Còn 112 ngày</span>
-                  <span>Tuần 40</span>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-linear-to-br from-[#FF9690] to-[#FFC7C1] text-sm font-extrabold text-white shadow-md">
+                  {userInitial}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  className="bg-[#E0F2F1] rounded-xl p-3.5"
-                >
-                  <div className="text-xl mb-1">📊</div>
-                  <div className="text-xs text-[#757575]">Cân nặng</div>
-                  <div className="text-base font-bold text-[#3E2723]">+3.2 kg</div>
-                </motion.div>
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  className="bg-[#FFF3E0] rounded-xl p-3.5"
-                >
-                  <div className="text-xl mb-1">❤️</div>
-                  <div className="text-xs text-[#757575]">Nhịp tim bé</div>
-                  <div className="text-base font-bold text-[#3E2723]">145 bpm</div>
-                </motion.div>
+              <div className="relative mt-6 grid gap-4 lg:grid-cols-[1.08fr_0.92fr]">
+                <div className="rounded-4xl bg-linear-to-br from-[#FFF8F7] to-[#FFF1ED] p-5">
+                  <div className="rounded-[28px] bg-white/82 p-4 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-xs text-[#A69490]">Thai kỳ hiện tại</div>
+                        <div className="mt-1 text-3xl font-black text-[#3E2723]">Tuần 24</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xs text-[#A69490]">Còn lại</div>
+                        <div className="mt-1 text-lg font-black text-[#FF7A74]">112 ngày nữa</div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 h-3 overflow-hidden rounded-full bg-[#F5DFDC]">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: '60%' }}
+                        transition={{ duration: 1, delay: 0.55 }}
+                        className="h-full rounded-full bg-linear-to-r from-[#FF9690] to-[#FFC8B7]"
+                      />
+                    </div>
+                    <div className="mt-3 flex items-center justify-between text-xs text-[#9A8B88]">
+                      <span>Tuần 1</span>
+                      <span>Hành trình đang rất ổn</span>
+                      <span>Tuần 40</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <div className="rounded-3xl bg-[#DFF1EE] p-4">
+                      <div className="text-xs text-[#5D7C74]">Cân nặng mẹ</div>
+                      <div className="mt-2 text-[1.9rem] font-black text-[#234E46]">+3.2</div>
+                      <div className="text-sm font-semibold text-[#234E46]">kg</div>
+                    </div>
+                    <div className="rounded-3xl bg-[#FFF1DC] p-4">
+                      <div className="text-xs text-[#8D6B40]">Nhịp tim em bé</div>
+                      <div className="mt-2 text-[1.9rem] font-black text-[#6D4526]">145</div>
+                      <div className="text-sm font-semibold text-[#6D4526]">bpm</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <div className="rounded-4xl bg-white p-5 shadow-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-xs text-[#A69490]">Nhẹ nhàng hôm nay</div>
+                        <div className="mt-1 text-lg font-black text-[#3E2723]">3 điều nên ưu tiên</div>
+                      </div>
+                      <div className="rounded-full bg-[#FFF1EE] px-3 py-1 text-xs font-bold text-[#FF7A74]">Today</div>
+                    </div>
+
+                    <div className="mt-4 space-y-3">
+                      {[
+                        'Uống vitamin đúng giờ',
+                        'Cập nhật cảm xúc cuối ngày',
+                        'Xem thực đơn dinh dưỡng hôm nay',
+                      ].map((item, index) => (
+                        <div key={item} className="flex items-center gap-3 rounded-[18px] bg-[#FFF9F7] px-3 py-3">
+                          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-xs font-bold text-[#A15E58] shadow-sm">
+                            {index + 1}
+                          </div>
+                          <div className="text-sm font-semibold text-[#4E403D]">{item}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-4xl bg-[#FFF7E8] p-5 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <img src="/moods/happy_blink.png" alt="Mood status" className="h-12 w-12 object-contain" />
+                      <div>
+                        <div className="text-sm font-black text-[#3E2723]">Tâm trạng hôm nay thật ổn</div>
+                        <div className="mt-1 text-xs text-[#8A7B63]">Mọi gợi ý đều vừa đủ, không khiến bạn thấy áp lực.</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </motion.div>
 
-            {/* Floating Cards */}
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0, y: [0, -10, 0] }}
-              transition={{ opacity: { delay: 0.4, duration: 0.5 }, repeat: Infinity, duration: 3, ease: "easeInOut" }}
-              className="absolute -left-8 top-16 bg-white rounded-xl shadow-md p-3 hidden lg:block"
+              initial={{ opacity: 0, x: -14, y: 8 }}
+              animate={{ opacity: 1, x: 0, y: [0, -6, 0] }}
+              transition={{ opacity: { delay: 0.44, duration: 0.45 }, repeat: Infinity, duration: 4.2, ease: 'easeInOut' }}
+              className="absolute -left-4 top-20 hidden rounded-3xl bg-white/90 px-4 py-3 shadow-[0_14px_32px_rgba(62,39,35,0.08)] ring-1 ring-white/80 backdrop-blur-md lg:block"
             >
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 bg-[#E0F2F1] rounded-full flex items-center justify-center text-lg">🍎</div>
-                <div>
-                  <div className="text-xs text-[#757575]">Bữa sáng</div>
-                  <div className="text-sm font-semibold text-[#3E2723]">420 kcal</div>
-                </div>
-              </div>
+              <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#B89A96]">Dinh dưỡng</div>
+              <div className="mt-2 text-sm font-bold text-[#3E2723]">Bữa sáng 420 kcal</div>
+              <div className="text-xs text-[#857875]">Nhìn một lần là nhớ mình đã ăn gì</div>
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0, y: [0, -8, 0] }}
-              transition={{ opacity: { delay: 0.5, duration: 0.5 }, repeat: Infinity, duration: 3.5, ease: "easeInOut", delay: 0.5 }}
-              className="absolute -right-8 top-1/3 bg-white rounded-xl shadow-md p-3 hidden lg:block"
+              initial={{ opacity: 0, x: 14, y: 10 }}
+              animate={{ opacity: 1, x: 0, y: [0, -6, 0] }}
+              transition={{ opacity: { delay: 0.56, duration: 0.45 }, repeat: Infinity, duration: 3.8, ease: 'easeInOut', delay: 0.5 }}
+              className="absolute -right-3 bottom-14 hidden rounded-3xl bg-white/92 px-4 py-3 shadow-[0_14px_32px_rgba(62,39,35,0.08)] ring-1 ring-white/80 backdrop-blur-md lg:block"
             >
-              <div className="flex items-center gap-2">
-                <img src="/moods/happy_blink.png" alt="Happy" className="w-8 h-8 object-contain" />
-                <span className="text-sm font-semibold text-[#3E2723]">Tâm trạng tốt</span>
-              </div>
-              <div className="text-xs text-[#999]">Hôm nay</div>
+              <div className="text-sm font-bold text-[#3E2723]">Bé đang phát triển ổn định</div>
+              <div className="mt-1 text-xs text-[#857875]">Mọi thông tin đều được đặt ở đúng chỗ, thật nhẹ nhàng</div>
             </motion.div>
           </motion.div>
         </div>
@@ -869,8 +879,112 @@ function Features() {
   );
 }
 
-// Premium Section - 2 columns: Free vs Paid
-function Premium() {
+// Premium Section - PayOS integration
+function Premium({
+  authUser,
+  onRequireLogin,
+}: {
+  authUser: AuthUser | null;
+  onRequireLogin: () => void;
+}) {
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [isLoadingPlans, setIsLoadingPlans] = useState(true);
+  const [purchasePlan, setPurchasePlan] = useState<SubscriptionPlanCode | null>(null);
+  const [paymentFeedback, setPaymentFeedback] = useState<string | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
+
+  useEffect(() => {
+    async function loadPlans() {
+      try {
+        const response = await fetch('/api/subscriptions/plans', {
+          cache: 'no-store',
+        });
+
+        const payload = (await response.json()) as ApiResponse<SubscriptionPlan[]>;
+
+        if (!response.ok || !payload.success || !payload.data) {
+          setPaymentFeedback(payload.message ?? 'Không thể tải bảng giá Premium.');
+          setPlans([]);
+          return;
+        }
+
+        const orderedPlans = [...payload.data].sort((left, right) => {
+          return premiumPlanOrder.indexOf(left.plan) - premiumPlanOrder.indexOf(right.plan);
+        });
+
+        setPlans(orderedPlans);
+      } catch {
+        setPaymentFeedback('Không thể tải bảng giá Premium.');
+      } finally {
+        setIsLoadingPlans(false);
+      }
+    }
+
+    void loadPlans();
+  }, []);
+
+  useEffect(() => {
+    async function loadSubscriptionStatus() {
+      if (!authUser) {
+        setSubscriptionStatus(null);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/subscriptions/status', {
+          cache: 'no-store',
+        });
+
+        const payload = (await response.json()) as ApiResponse<unknown>;
+
+        if (!response.ok || !payload.success) {
+          setSubscriptionStatus(null);
+          return;
+        }
+
+        setSubscriptionStatus(extractSubscriptionStatus(payload.data));
+      } catch {
+        setSubscriptionStatus(null);
+      }
+    }
+
+    void loadSubscriptionStatus();
+  }, [authUser]);
+
+  async function handlePurchase(planCode: SubscriptionPlanCode) {
+    if (!authUser) {
+      setPaymentFeedback('Bạn cần đăng nhập trước khi thanh toán gói Premium.');
+      onRequireLogin();
+      return;
+    }
+
+    setPurchasePlan(planCode);
+    setPaymentFeedback(null);
+
+    try {
+      const response = await fetch('/api/subscriptions/purchase', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ plan: planCode }),
+      });
+
+      const payload = (await response.json()) as ApiResponse<PurchaseSubscriptionResponse>;
+
+      if (!response.ok || !payload.success || !payload.data?.checkoutUrl) {
+        setPaymentFeedback(payload.message ?? 'Không thể tạo giao dịch thanh toán PayOS.');
+        return;
+      }
+
+      window.location.href = payload.data.checkoutUrl;
+    } catch {
+      setPaymentFeedback('Không thể kết nối tới PayOS lúc này. Vui lòng thử lại.');
+    } finally {
+      setPurchasePlan(null);
+    }
+  }
+
   return (
     <section id="premium" className="py-16 lg:py-24 bg-linear-to-b from-[#FFEBEE] via-[#FFF5F5] to-[#FFEBEE]">
       <div className="max-w-6xl mx-auto px-6 lg:px-8">
@@ -884,18 +998,43 @@ function Premium() {
           </p>
         </AnimatedSection>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          {premiumPlans.map((plan, index) => (
+        {paymentFeedback && (
+          <div className="mx-auto mb-6 max-w-3xl rounded-2xl bg-white px-5 py-4 text-center text-sm text-[#C44545] shadow-sm">
+            {paymentFeedback}
+          </div>
+        )}
+
+        {isLoadingPlans ? (
+          <div className="grid gap-6 md:grid-cols-3">
+            {premiumPlanOrder.map((planCode) => (
+              <div key={planCode} className="h-105 animate-pulse rounded-2xl border border-gray-200 bg-white" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-3">
+            {plans.map((plan, index) => {
+              const content = premiumPlanContent[plan.plan];
+              const priceLabel = formatCurrencyVnd(plan.price).replace(' ₫', '');
+              const isActivePlan = Boolean(subscriptionStatus?.isPremium && subscriptionStatus.plan === plan.plan);
+
+              return (
             <AnimatedCard
               key={plan.name}
               delay={index * 0.1}
-              className={`relative overflow-hidden rounded-2xl border p-6 shadow-lg ${
-                plan.popular
+              className={`relative flex h-full flex-col overflow-hidden rounded-2xl border p-6 shadow-lg ${
+                isActivePlan
+                  ? 'border-[#B8E6D4] bg-linear-to-b from-[#F5FFF9] to-white ring-2 ring-[#B8E6D4]'
+                  : content?.popular
                   ? 'border-[#FF9690] bg-linear-to-b from-white to-[#FFF7EF]'
                   : 'border-gray-200 bg-white'
               }`}
             >
-              {plan.popular && (
+              {isActivePlan && (
+                <div className="absolute left-4 top-4 rounded-full bg-[#B8E6D4] px-3 py-1 text-xs font-bold text-[#245B47]">
+                  Đang active
+                </div>
+              )}
+              {content?.popular && (
                 <div className="absolute right-4 top-4 rounded-full bg-[#FF9690] px-3 py-1 text-xs font-bold text-white">
                   Phổ biến
                 </div>
@@ -904,23 +1043,30 @@ function Premium() {
               <div className="mb-5">
                 <h3 className="text-xl font-bold text-[#3E2723] mb-2">{plan.name}</h3>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold text-black">{plan.price}</span>
-                  <span className="text-sm text-gray-500">₫/{plan.period}</span>
+                  <span className="text-3xl font-bold text-black">{priceLabel}</span>
+                  <span className="text-sm text-gray-500">₫/{plan.durationMonths === 12 ? 'năm' : plan.durationMonths === 6 ? '6 tháng' : 'tháng'}</span>
                 </div>
+                <div className="mt-2 text-xs text-[#999]">
+                  {formatCurrencyVnd(plan.pricePerMonth)}/tháng
+                  {plan.savePercent ? ` • Tiết kiệm ${plan.savePercent}%` : ''}
+                </div>
+                {isActivePlan && (
+                  <div className="mt-3 inline-flex rounded-full bg-[#E7F7EF] px-3 py-1 text-xs font-semibold text-[#1F7A4D]">
+                    {getPlanLabel(subscriptionStatus?.plan ?? null)} • còn {subscriptionStatus?.daysRemaining ?? 0} ngày
+                  </div>
+                )}
               </div>
 
               <div className="mb-5 rounded-xl bg-linear-to-r from-[#FFEBEE] to-[#FFF3E0] p-4">
                 <p className="text-sm font-medium text-[#3E2723]">
-                  {plan.name === 'Gói 1 Tháng' && 'Phù hợp để trải nghiệm nhanh toàn bộ hệ sinh thái PregTap.'}
-                  {plan.name === 'Gói 6 Tháng' && 'Lựa chọn cân bằng chi phí và thời gian đồng hành trong thai kỳ.'}
-                  {plan.name === 'Gói 1 Năm' && 'Tối ưu nhất nếu bạn muốn sử dụng dài hạn và lưu trữ đầy đủ dữ liệu.'}
+                  {content?.blurb ?? 'Gói Premium giúp bạn mở khóa đầy đủ tính năng của PregTap.'}
                 </p>
               </div>
 
-              <div className="border-t border-gray-100 pt-4">
+              <div className="flex-1 border-t border-gray-100 pt-4">
                 <h4 className="text-sm font-semibold text-[#3E2723] mb-3">Quyền lợi:</h4>
                 <div className="space-y-2">
-                  {plan.features.map((feature, i) => (
+                  {(content?.features ?? []).map((feature, i) => (
                     <motion.div
                       key={i}
                       initial={{ opacity: 0, x: -10 }}
@@ -929,7 +1075,7 @@ function Premium() {
                       transition={{ delay: i * 0.05 }}
                       className="flex items-center gap-3"
                     >
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center ${plan.popular ? 'bg-[#FF9690]' : 'bg-[#B8E6D4]'}`}>
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center ${content?.popular ? 'bg-[#FF9690]' : 'bg-[#B8E6D4]'}`}>
                         <CheckIcon className="w-3 h-3 text-white" />
                       </div>
                       <span className="text-sm text-gray-700">{feature}</span>
@@ -937,12 +1083,18 @@ function Premium() {
                   ))}
                 </div>
               </div>
-              <button className={`mt-6 w-full rounded-[25px] px-5 py-3 text-sm font-semibold transition-colors ${plan.popular ? 'bg-linear-to-r from-[#FF9690] to-[#FF7A74] text-white shadow-md' : 'border-2 border-[#FF9690] text-[#FF9690] hover:bg-[#FF9690]/10'}`}>
-                {plan.cta}
+              <button
+                onClick={() => handlePurchase(plan.plan)}
+                disabled={purchasePlan === plan.plan || isActivePlan}
+                className={`mt-6 w-full rounded-[25px] px-5 py-3 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${isActivePlan ? 'bg-[#EAF7F0] text-[#1F7A4D]' : content?.popular ? 'bg-linear-to-r from-[#FF9690] to-[#FF7A74] text-white shadow-md' : 'border-2 border-[#FF9690] text-[#FF9690] hover:bg-[#FF9690]/10'}`}
+              >
+                {isActivePlan ? 'Gói hiện tại của bạn' : purchasePlan === plan.plan ? 'Đang chuyển tới PayOS...' : content?.cta ?? 'Mua ngay'}
               </button>
             </AnimatedCard>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -1135,6 +1287,7 @@ export default function Home() {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [toast, setToast] = useState<{ message: string; tone: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
     async function loadCurrentUser() {
@@ -1180,12 +1333,34 @@ export default function Home() {
     }
   }
 
-  function handleAuthSuccess(payload: AuthResponse) {
+  useEffect(() => {
+    if (!toast) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setToast(null);
+    }, 2600);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [toast]);
+
+  function handleAuthSuccess(payload: AuthResponse, mode: AuthMode) {
     setAuthUser(payload.user);
+    setToast({
+      tone: 'success',
+      message: mode === 'login' ? 'Đăng nhập thành công.' : 'Tạo tài khoản thành công.',
+    });
   }
 
   return (
     <main className="min-h-screen">
+      <ToastNotice
+        isOpen={Boolean(toast)}
+        message={toast?.message ?? ''}
+        tone={toast?.tone ?? 'success'}
+        onClose={() => setToast(null)}
+      />
       <Header
         authUser={authUser}
         isLoggingOut={isLoggingOut}
@@ -1206,7 +1381,7 @@ export default function Home() {
         }}
       />
       <Features />
-      <Premium />
+      <Premium authUser={authUser} onRequireLogin={() => openAuthModal('login')} />
       <Experts />
       <CTA
         authUser={authUser}

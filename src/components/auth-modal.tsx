@@ -12,7 +12,7 @@ type AuthModalProps = {
   mode: AuthMode;
   onClose: () => void;
   onModeChange: (mode: AuthMode) => void;
-  onSuccess: (payload: AuthResponse) => void;
+  onSuccess: (payload: AuthResponse, mode: AuthMode) => void;
 };
 
 const initialLoginForm: LoginRequest = {
@@ -90,12 +90,7 @@ export function AuthModal({ isOpen, mode, onClose, onModeChange, onSuccess }: Au
         return;
       }
 
-      setFeedback({
-        type: 'success',
-        message: payload.message ?? (mode === 'login' ? 'Đăng nhập thành công.' : 'Tạo tài khoản thành công.'),
-      });
-
-      onSuccess(payload.data);
+      onSuccess(payload.data, mode);
 
       if (mode === 'login') {
         setLoginForm(initialLoginForm);
@@ -271,12 +266,10 @@ export function AuthModal({ isOpen, mode, onClose, onModeChange, onSuccess }: Au
                 </>
               )}
 
-              {feedback && (
+              {feedback?.type === 'error' && (
                 <div
                   className={`rounded-2xl px-4 py-3 text-sm ${
-                    feedback.type === 'success'
-                      ? 'bg-[#E7F7EF] text-[#1F7A4D]'
-                      : 'bg-[#FFF1F1] text-[#C44545]'
+                    'bg-[#FFF1F1] text-[#C44545]'
                   }`}
                 >
                   {feedback.message}
