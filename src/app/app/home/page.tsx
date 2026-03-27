@@ -402,7 +402,7 @@ export default function HomePage() {
         </motion.div>
 
         {/* Due date info card */}
-        {pregnancy.dueDate && (
+        {pregnancy.expectedDeliveryDate && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -423,7 +423,7 @@ export default function HomePage() {
             <div className="flex-1">
               <p className="text-xs font-semibold uppercase tracking-wide text-[#999]">Ngày dự sinh</p>
               <p className="text-base font-bold text-[#3E2723]">
-                {format(parseISO(pregnancy.dueDate), "dd 'tháng' M 'năm' yyyy", { locale: vi })}
+                {format(parseISO(pregnancy.expectedDeliveryDate), "dd 'tháng' M 'năm' yyyy", { locale: vi })}
               </p>
             </div>
             {pregnancy.babyNickname && (

@@ -23,28 +23,34 @@ export type {
 // Pregnancy Models
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Active pregnancy record (mirrors Flutter's ActivePregnancyModel) */
+/** Active pregnancy record (mirrors MO's backend DTO) */
 export interface ActivePregnancy {
   id: string;
   userId: string;
-  pregnancyNo: number;
+  pregnancyNumber: number;
   status: string;
-  dueDate: string;
+  expectedDeliveryDate: string;
+  estimatedConceptionDate?: string;
   prePregnancyWeightKg?: number;
   heightCm?: number;
   prePregnancyBmi?: number;
   currentGestationalWeek?: number;
+  gestationalAgeDisplay?: string;
   babyNickname?: string;
   babyGender?: 'Unknown' | 'Male' | 'Female';
   pregnancyType?: 'Singleton' | 'Twins' | 'Triplets' | 'Other';
   motherBloodType?: string;
   gravida?: number;
   para?: number;
+  obstetricFormula?: string;
   coverImageUrl?: string;
   lastMenstrualPeriodDate?: string;
-  dueDateSource?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  dueDateSource?: 'LMP' | 'Ultrasound' | 'IVF' | 'Manual';
+  notes?: string;
+  actualDeliveryDate?: string;
+  deliveryMethod?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /** Computed pregnancy progress from due date */
