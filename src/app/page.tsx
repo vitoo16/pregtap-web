@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, useInView, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 
 import { AuthModal } from '@/components/auth-modal';
 import { ToastNotice } from '@/components/toast-notice';
 import { type ApiResponse, type AuthResponse, type AuthUser } from '@/lib/auth';
+import { getAccessToken, clearTokens } from '@/lib/token-store';
 import {
   extractSubscriptionStatus,
   formatCurrencyVnd,
@@ -398,6 +400,16 @@ function Header({
           <div className="hidden md:flex items-center gap-3">
             {authUser ? (
               <>
+                <Link
+                  href="/app/home"
+                  className="flex items-center gap-2 rounded-full bg-linear-to-r from-[#FF9690] to-[#FF7A74] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                  </svg>
+                  Ứng dụng
+                </Link>
                 <Link
                   href="/profile"
                   className="flex items-center gap-3 rounded-full border border-[#FF9690]/20 bg-white/90 px-3 py-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-md"
@@ -1162,16 +1174,8 @@ function CTA({ authUser, onPrimaryAction }: { authUser: AuthUser | null; onPrima
   return (
     <section className="py-16 lg:py-24 bg-linear-to-r from-[#FF9690] to-[#FF7A74] relative overflow-hidden">
       {/* Decorative Elements */}
-      <motion.div
-        animate={{ scale: [1, 1.1, 1] }}
-        transition={{ repeat: Infinity, duration: 4 }}
-        className="absolute top-0 left-0 w-48 h-48 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2"
-      />
-      <motion.div
-        animate={{ scale: [1, 1.15, 1] }}
-        transition={{ repeat: Infinity, duration: 5, delay: 1 }}
-        className="absolute bottom-0 right-0 w-64 h-64 bg-white/10 rounded-full translate-x-1/2 translate-y-1/2"
-      />
+      <div className="absolute top-0 left-0 w-48 h-48 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2" />
+      <div className="absolute bottom-0 right-0 w-64 h-64 bg-white/10 rounded-full translate-x-1/2 translate-y-1/2" />
 
       <AnimatedSection className="relative max-w-3xl mx-auto px-6 text-center">
         <h2 className="text-2xl lg:text-4xl font-bold text-white mb-4">
@@ -1282,17 +1286,28 @@ function Footer() {
 }
 
 // Main Page Component
-export default function Home() {
+function HomeContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [authMode, setAuthMode] = useState<AuthMode>('login');
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [toast, setToast] = useState<{ message: string; tone: 'success' | 'error' } | null>(null);
 
+  // Auto-open auth modal if redirected from /app with ?login=true
+  useEffect(() => {
+    if (searchParams.get('login') === 'true') {
+      openAuthModal('login');
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     async function loadCurrentUser() {
+      const token = getAccessToken();
       try {
         const response = await fetch('/api/auth/me', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
           cache: 'no-store',
         });
 
@@ -1323,11 +1338,14 @@ export default function Home() {
   async function handleLogout() {
     setIsLoggingOut(true);
 
+    const token = getAccessToken();
     try {
       await fetch('/api/auth/logout', {
         method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
     } finally {
+      clearTokens();
       setAuthUser(null);
       setIsLoggingOut(false);
     }
@@ -1351,6 +1369,10 @@ export default function Home() {
       tone: 'success',
       message: mode === 'login' ? 'Đăng nhập thành công.' : 'Tạo tài khoản thành công.',
     });
+    // Redirect to /app after successful login, removing ?login=true from URL
+    window.setTimeout(() => {
+      router.replace('/app');
+    }, 600);
   }
 
   return (
@@ -1373,7 +1395,7 @@ export default function Home() {
         onExploreFeatures={() => scrollToSection('features')}
         onPrimaryAction={() => {
           if (authUser) {
-            scrollToSection('features');
+            router.push('/app');
             return;
           }
 
@@ -1387,7 +1409,7 @@ export default function Home() {
         authUser={authUser}
         onPrimaryAction={() => {
           if (authUser) {
-            scrollToSection('features');
+            router.push('/app');
             return;
           }
 
@@ -1403,5 +1425,19 @@ export default function Home() {
         onSuccess={handleAuthSuccess}
       />
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen">
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-[#FF9690]/30 border-t-[#FF9690]" />
+        </div>
+      </main>
+    }>
+      <HomeContent />
+    </Suspense>
   );
 }

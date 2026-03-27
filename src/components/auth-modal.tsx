@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 import { type ApiResponse, type AuthResponse, type LoginRequest, type RegisterRequest } from '@/lib/auth';
+import { setAccessToken, setRefreshToken } from '@/lib/token-store';
 
 type AuthMode = 'login' | 'register';
 
@@ -80,7 +81,7 @@ export function AuthModal({ isOpen, mode, onClose, onModeChange, onSuccess }: Au
         body: JSON.stringify(body),
       });
 
-      const payload = (await response.json()) as ApiResponse<AuthResponse>;
+      const payload = (await response.json()) as ApiResponse<AuthResponse> & { _tokens?: { accessToken: string; refreshToken: string } };
 
       if (!response.ok || !payload.success || !payload.data) {
         setFeedback({
@@ -88,6 +89,12 @@ export function AuthModal({ isOpen, mode, onClose, onModeChange, onSuccess }: Au
           message: getApiMessage(payload, mode === 'login' ? 'Đăng nhập thất bại.' : 'Đăng ký thất bại.'),
         });
         return;
+      }
+
+      // Store tokens in localStorage (Bearer auth — matching MO pattern)
+      if (payload._tokens) {
+        setAccessToken(payload._tokens.accessToken);
+        setRefreshToken(payload._tokens.refreshToken ?? '');
       }
 
       onSuccess(payload.data, mode);

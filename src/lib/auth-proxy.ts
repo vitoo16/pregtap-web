@@ -3,9 +3,7 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 
 import {
-  ACCESS_COOKIE_NAME,
   AUTH_API_BASE_URL,
-  REFRESH_COOKIE_NAME,
   type ApiResponse,
   type AuthResponse,
   type AuthUser,
@@ -14,6 +12,9 @@ import {
 type JsonObject = Record<string, unknown>;
 
 function buildApiUrl(path: string) {
+  if (!AUTH_API_BASE_URL) {
+    throw new Error(`AUTH_API_BASE_URL is empty. env=${process.env?.AUTH_API_BASE_URL}`);
+  }
   return `${AUTH_API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
@@ -55,78 +56,6 @@ function createProxyErrorResponse(message: string, status = 502) {
   );
 }
 
-function isAuthResponsePayload(payload: unknown): payload is ApiResponse<AuthResponse> {
-  if (!payload || typeof payload !== 'object') {
-    return false;
-  }
-
-  const candidate = payload as ApiResponse<AuthResponse>;
-  return Boolean(candidate.success && candidate.data?.user);
-}
-
-function applyAuthCookies(response: NextResponse, payload: ApiResponse<AuthResponse>) {
-  if (!isAuthResponsePayload(payload)) {
-    return response;
-  }
-
-  const authData = payload.data;
-
-  if (!authData) {
-    return response;
-  }
-
-  const maxAge = authData.expiresIn > 0 ? authData.expiresIn : 60 * 60;
-
-  if (authData.accessToken) {
-    response.cookies.set({
-      name: ACCESS_COOKIE_NAME,
-      value: authData.accessToken,
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-      maxAge,
-    });
-  }
-
-  if (authData.refreshToken) {
-    response.cookies.set({
-      name: REFRESH_COOKIE_NAME,
-      value: authData.refreshToken,
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 30,
-    });
-  }
-
-  return response;
-}
-
-export function clearAuthCookies(response: NextResponse) {
-  response.cookies.set({
-    name: ACCESS_COOKIE_NAME,
-    value: '',
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    maxAge: 0,
-  });
-  response.cookies.set({
-    name: REFRESH_COOKIE_NAME,
-    value: '',
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    maxAge: 0,
-  });
-
-  return response;
-}
-
 export async function proxyAuthMutation(path: string, body: unknown) {
   try {
     const upstream = await fetch(buildApiUrl(path), {
@@ -140,13 +69,23 @@ export async function proxyAuthMutation(path: string, body: unknown) {
     });
 
     const payload = await parseUpstreamBody(upstream);
-    const response = NextResponse.json(payload, { status: upstream.status });
 
-    if (isAuthResponsePayload(payload)) {
-      applyAuthCookies(response, payload);
+    // Return tokens in body so client can store them in localStorage (Bearer auth)
+    const authData = (payload as ApiResponse<AuthResponse>)?.data;
+    if (authData?.accessToken) {
+      // Attach tokens to response body for client localStorage storage
+      const enriched = {
+        ...payload,
+        _tokens: {
+          accessToken: authData.accessToken,
+          refreshToken: authData.refreshToken,
+          expiresIn: authData.expiresIn,
+        },
+      };
+      return NextResponse.json(enriched, { status: upstream.status });
     }
 
-    return response;
+    return NextResponse.json(payload, { status: upstream.status });
   } catch {
     return createProxyErrorResponse('Không thể kết nối tới dịch vụ xác thực.');
   }
@@ -177,13 +116,7 @@ export async function proxyCurrentUser(accessToken?: string) {
     });
 
     const payload = (await parseUpstreamBody(upstream)) as ApiResponse<AuthUser> | JsonObject | null;
-    const response = NextResponse.json(payload, { status: upstream.status });
-
-    if (upstream.status === 401) {
-      clearAuthCookies(response);
-    }
-
-    return response;
+    return NextResponse.json(payload, { status: upstream.status });
   } catch {
     return createProxyErrorResponse('Không thể tải thông tin người dùng.');
   }
@@ -215,13 +148,7 @@ export async function proxyProfileUpdate(accessToken: string | undefined, formDa
     });
 
     const payload = (await parseUpstreamBody(upstream)) as ApiResponse<AuthUser> | JsonObject | null;
-    const response = NextResponse.json(payload, { status: upstream.status });
-
-    if (upstream.status === 401) {
-      clearAuthCookies(response);
-    }
-
-    return response;
+    return NextResponse.json(payload, { status: upstream.status });
   } catch {
     return createProxyErrorResponse('Không thể cập nhật hồ sơ người dùng.');
   }

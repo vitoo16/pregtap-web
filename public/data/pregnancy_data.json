@@ -1,0 +1,320 @@
+{
+  "trimester_1": [
+    {
+      "week_number": 1,
+      "embryo_image": "assets/embryo_1.png",
+      "weight": { "value": "0", "unit": "g" },
+      "length": { "value": "0", "unit": "cm" },
+      "current_week_and_days": "0 tuần và 0 ngày",
+      "trimester": "Tam cá nguyệt 1",
+      "date_of_labor": "07-Jul-2024",
+      "weeks_and_days_left": "Còn lại 39 tuần và 0 ngày",
+      "info_sections": [
+        {
+          "title": "Bé",
+          "content": "Đây là tuần bắt đầu chu kỳ kinh nguyệt cuối cùng của bạn. Thực tế, bạn chưa thụ thai nhưng cơ thể đang chuẩn bị cho quá trình rụng trứng."
+        },
+        {
+          "title": "Mẹ",
+          "content": "Cơ thể bạn đang bắt đầu một chu kỳ mới. Lớp niêm mạc tử cung sẽ bong ra và chuẩn bị xây dựng lại để đón trứng thụ tinh."
+        },
+        {
+          "title": "Lời khuyên hữu ích",
+          "content": "Bắt đầu bổ sung Acid Folic (400mcg/ngày). Ngừng hút thuốc, uống rượu và các chất kích thích để chuẩn bị môi trường tốt nhất cho bé."
+        }
+      ]
+    },
+    {
+      "week_number": 4,
+      "embryo_image": "assets/embryo_4.png",
+      "weight": { "value": "0.1", "unit": "g" },
+      "length": { "value": "0.2", "unit": "cm" },
+      "current_week_and_days": "3 tuần và 3 ngày",
+      "trimester": "Tam cá nguyệt 1",
+      "date_of_labor": "07-Jul-2024",
+      "weeks_and_days_left": "Còn lại 36 tuần và 4 ngày",
+      "info_sections": [
+        {
+          "title": "Bé",
+          "content": "Phôi thai đã làm tổ thành công trong tử cung. Các tế bào bắt đầu phân chia thành 3 lớp: ngoại bì (da, hệ thần kinh), trung bì (tim, xương, cơ) và nội bì (hệ tiêu hóa, phổi)."
+        },
+        {
+          "title": "Mẹ",
+          "content": "Bạn có thể thấy một vài vết máu nhẹ (máu báo thai) và cảm thấy ngực hơi căng tức. Nồng độ hormone hCG bắt đầu tăng vọt."
+        },
+        {
+          "title": "Lời khuyên hữu ích",
+          "content": "Đây là lúc que thử thai sẽ cho kết quả chính xác nhất. Hãy bắt đầu theo dõi chế độ dinh dưỡng giàu sắt và protein."
+        }
+      ]
+    },
+    {
+      "week_number": 6,
+      "embryo_image": "assets/embryo_6.png",
+      "weight": { "value": "0.5", "unit": "g" },
+      "length": { "value": "0.6", "unit": "cm" },
+      "current_week_and_days": "5 tuần và 3 ngày",
+      "trimester": "Tam cá nguyệt 1",
+      "date_of_labor": "07-Jul-2024",
+      "weeks_and_days_left": "Còn lại 33 tuần và 4 ngày",
+      "info_sections": [
+        {
+          "title": "Bé",
+          "content": "Tim thai bắt đầu đập và có thể quan sát được qua siêu âm. Ống thần kinh đang dần đóng lại, các chồi chi (tay và chân) bắt đầu nhú ra."
+        },
+        {
+          "title": "Mẹ",
+          "content": "Ốm nghén có thể xuất hiện rõ rệt hơn. Bạn thường xuyên cảm thấy mệt mỏi và đi vệ sinh nhiều hơn do tử cung bắt đầu to ra."
+        },
+        {
+          "title": "Lời khuyên hữu ích",
+          "content": "Uống nhiều nước và chia nhỏ bữa ăn. Hãy đi khám thai lần đầu để xác định vị trí túi thai trong tử cung."
+        }
+      ]
+    },
+    {
+      "week_number": 8,
+      "embryo_image": "assets/embryo_8.png",
+      "weight": { "value": "1", "unit": "g" },
+      "length": { "value": "1.6", "unit": "cm" },
+      "current_week_and_days": "7 tuần và 3 ngày",
+      "trimester": "Tam cá nguyệt 1",
+      "date_of_labor": "07-Jul-2024",
+      "weeks_and_days_left": "Còn lại 32 tuần và 4 ngày",
+      "info_sections": [
+        {
+          "title": "Bé",
+          "content": "Các cơ quan nội tạng chính như gan, thận đã bắt đầu hình thành. Khuôn mặt của bé dần rõ nét hơn với các hốc mắt và chóp mũi tí hon."
+        },
+        {
+          "title": "Mẹ",
+          "content": "Tử cung hiện có kích thước bằng quả cam. Bạn có thể cảm thấy đau bụng lâm râm nhẹ do dây chằng tử cung đang giãn ra."
+        },
+        {
+          "title": "Lời khuyên hữu ích",
+          "content": "Tiếp tục duy trì vận động nhẹ nhàng. Quan hệ tình dục trong giai đoạn này thường an toàn trừ khi có chỉ định đặc biệt của bác sĩ."
+        }
+      ]
+    },
+    {
+      "week_number": 12,
+      "embryo_image": "assets/embryo_12.png",
+      "weight": { "value": "14", "unit": "g" },
+      "length": { "value": "5.4", "unit": "cm" },
+      "current_week_and_days": "11 tuần và 3 ngày",
+      "trimester": "Tam cá nguyệt 1",
+      "date_of_labor": "07-Jul-2024",
+      "weeks_and_days_left": "Còn lại 28 tuần và 4 ngày",
+      "info_sections": [
+        {
+          "title": "Bé",
+          "content": "Em bé đã có đầy đủ các bộ phận cơ thể và bắt đầu cử động các ngón tay, ngón chân. Hệ thống tiêu hóa đã có thể hấp thụ chất dinh dưỡng."
+        },
+        {
+          "title": "Mẹ",
+          "content": "Nguy cơ sảy thai giảm xuống đáng kể. Bụng bạn bắt đầu hơi nhô lên một chút và các vết rạn da có thể xuất hiện."
+        },
+        {
+          "title": "Lời khuyên hữu ích",
+          "content": "Cột mốc quan trọng để đo độ mờ da gáy (NT scan) và làm xét nghiệm Double Test để sàng lọc các hội chứng di truyền."
+        }
+      ]
+    }
+  ],
+  "trimester_2": [
+    {
+      "week_number": 14,
+      "embryo_image": "assets/embryo_14.png",
+      "weight": { "value": "43", "unit": "g" },
+      "length": { "value": "8.7", "unit": "cm" },
+      "current_week_and_days": "13 tuần và 3 ngày",
+      "trimester": "Tam cá nguyệt 2",
+      "date_of_labor": "07-Jul-2024",
+      "weeks_and_days_left": "Còn lại 26 tuần và 4 ngày",
+      "info_sections": [
+        {
+          "title": "Bé",
+          "content": "Bé bắt đầu có những cử động nét mặt đầu tiên như nheo mắt hay nhăn mặt. Thận bắt đầu sản xuất nước tiểu và bài tiết vào nước ối."
+        },
+        {
+          "title": "Mẹ",
+          "content": "Cảm giác ốm nghén dần biến mất, năng lượng của bạn đang quay trở lại. Bụng bầu bắt đầu lộ rõ hơn khiến bạn trông rạng rỡ."
+        },
+        {
+          "title": "Lời khuyên hữu ích",
+          "content": "Bắt đầu tập luyện các bài tập Kegel để tăng cường cơ sàn chậu. Đây cũng là lúc bạn có thể bắt đầu bôi kem chống rạn da."
+        }
+      ]
+    },
+    {
+      "week_number": 18,
+      "embryo_image": "assets/embryo_18.png",
+      "weight": { "value": "190", "unit": "g" },
+      "length": { "value": "14.2", "unit": "cm" },
+      "current_week_and_days": "17 tuần và 3 ngày",
+      "trimester": "Tam cá nguyệt 2",
+      "date_of_labor": "07-Jul-2024",
+      "weeks_and_days_left": "Còn lại 22 tuần và 4 ngày",
+      "info_sections": [
+        {
+          "title": "Bé",
+          "content": "Tai của bé đã ở đúng vị trí và bắt đầu nghe được âm thanh. Lớp myelin đang bao phủ các dây thần kinh để dẫn truyền tín hiệu nhanh hơn."
+        },
+        {
+          "title": "Mẹ",
+          "content": "Bạn có thể cảm nhận được những cú đạp nhẹ đầu tiên. Tim phải làm việc nhiều hơn để bơm máu đi nuôi cơ thể và thai nhi."
+        },
+        {
+          "title": "Lời khuyên hữu ích",
+          "content": "Hãy thử hát hoặc trò chuyện với bé. Tránh nằm ngửa khi ngủ để không làm cản trở lưu thông máu đến tử cung."
+        }
+      ]
+    },
+    {
+      "week_number": 22,
+      "embryo_image": "assets/embryo_22.png",
+      "weight": { "value": "430", "unit": "g" },
+      "length": { "value": "27.8", "unit": "cm" },
+      "current_week_and_days": "21 tuần và 3 ngày",
+      "trimester": "Tam cá nguyệt 2",
+      "date_of_labor": "07-Jul-2024",
+      "weeks_and_days_left": "Còn lại 18 tuần và 4 ngày",
+      "info_sections": [
+        {
+          "title": "Bé",
+          "content": "Vị giác đang phát triển. Bé đã có lông mày, lông mi và bắt đầu có chu kỳ ngủ - thức rõ ràng hơn."
+        },
+        {
+          "title": "Mẹ",
+          "content": "Bạn có thể bị sưng phù nhẹ ở chân (phù nề). Ham muốn tình dục có thể tăng cao trong giai đoạn này do lượng máu lưu thông vùng chậu tăng."
+        },
+        {
+          "title": "Lời khuyên hữu ích",
+          "content": "Bổ sung nhiều thực phẩm giàu sắt để tránh thiếu máu. Nếu chân bị sưng, hãy kê cao chân khi ngồi hoặc nằm."
+        }
+      ]
+    },
+    {
+      "week_number": 26,
+      "embryo_image": "assets/embryo_26.png",
+      "weight": { "value": "760", "unit": "g" },
+      "length": { "value": "35.6", "unit": "cm" },
+      "current_week_and_days": "25 tuần và 3 ngày",
+      "trimester": "Tam cá nguyệt 2",
+      "date_of_labor": "07-Jul-2024",
+      "weeks_and_days_left": "Còn lại 14 tuần và 4 ngày",
+      "info_sections": [
+        {
+          "title": "Bé",
+          "content": "Mắt bé bắt đầu mở ra và có thể phản ứng với ánh sáng từ bên ngoài bụng mẹ. Phổi bắt đầu sản xuất surfactant giúp túi nang không bị xẹp."
+        },
+        {
+          "title": "Mẹ",
+          "content": "Tử cung to ra chèn ép vào sườn có thể khiến bạn thỉnh thoảng thấy khó thở hoặc đau lưng. Các cơn gò giả Braxton Hicks có thể xuất hiện."
+        },
+        {
+          "title": "Lời khuyên hữu ích",
+          "content": "Đây là thời điểm quan trọng để thực hiện xét nghiệm dung nạp Glucose nhằm kiểm tra tiểu đường thai kỳ."
+        }
+      ]
+    }
+  ],
+  "trimester_3": [
+    {
+      "week_number": 28,
+      "embryo_image": "assets/embryo_28.png",
+      "weight": { "value": "1000", "unit": "g" },
+      "length": { "value": "37.6", "unit": "cm" },
+      "current_week_and_days": "27 tuần và 3 ngày",
+      "trimester": "Tam cá nguyệt 3",
+      "date_of_labor": "07-Jul-2024",
+      "weeks_and_days_left": "Còn lại 12 tuần và 4 ngày",
+      "info_sections": [
+        {
+          "title": "Bé",
+          "content": "Bé bắt đầu tập cử động thở bằng cách hít nước ối. Lông mi đã phát triển hoàn thiện và bé có thể nhắm mở mắt thường xuyên."
+        },
+        {
+          "title": "Mẹ",
+          "content": "Bạn có thể gặp khó khăn khi tìm tư thế ngủ thoải mái. Chứng ợ nóng và chuột rút chân có thể xuất hiện thường xuyên hơn."
+        },
+        {
+          "title": "Lời khuyên hữu ích",
+          "content": "Đây là lúc bắt đầu đếm cử động thai (Kick counter). Nếu thấy bé đạp ít hơn 10 lần trong 2 giờ, hãy liên hệ bác sĩ."
+        }
+      ]
+    },
+    {
+      "week_number": 32,
+      "embryo_image": "assets/embryo_32.png",
+      "weight": { "value": "1700", "unit": "g" },
+      "length": { "value": "42.4", "unit": "cm" },
+      "current_week_and_days": "31 tuần và 3 ngày",
+      "trimester": "Tam cá nguyệt 3",
+      "date_of_labor": "07-Jul-2024",
+      "weeks_and_days_left": "Còn lại 8 tuần và 4 ngày",
+      "info_sections": [
+        {
+          "title": "Bé",
+          "content": "Các xương đã phát triển đầy đủ nhưng vẫn còn mềm. Bé bắt đầu tích lũy lớp mỡ dưới da để điều hòa thân nhiệt sau khi sinh."
+        },
+        {
+          "title": "Mẹ",
+          "content": "Lượng máu trong cơ thể bạn đã tăng gấp rưỡi so với lúc chưa bầu. Tử cung đẩy lên cao khiến bạn dễ bị hụt hơi khi vận động."
+        },
+        {
+          "title": "Lời khuyên hữu ích",
+          "content": "Nên đi khám thai 2 tuần một lần. Bắt đầu tìm hiểu về các dấu hiệu chuyển dạ giả và thật."
+        }
+      ]
+    },
+    {
+      "week_number": 36,
+      "embryo_image": "assets/embryo_36.png",
+      "weight": { "value": "2600", "unit": "g" },
+      "length": { "value": "47.4", "unit": "cm" },
+      "current_week_and_days": "35 tuần và 3 ngày",
+      "trimester": "Tam cá nguyệt 3",
+      "date_of_labor": "07-Jul-2024",
+      "weeks_and_days_left": "Còn lại 4 tuần và 4 ngày",
+      "info_sections": [
+        {
+          "title": "Bé",
+          "content": "Phần lớn lớp lông tơ và chất gây bao phủ cơ thể bé bắt đầu rụng bớt. Hầu hết các bé đã quay đầu xuống dưới để sẵn sàng ra đời."
+        },
+        {
+          "title": "Mẹ",
+          "content": "Bé tụt xuống vùng chậu khiến bạn thấy dễ thở hơn nhưng áp lực lên bàng quang tăng mạnh, gây đi tiểu liên tục."
+        },
+        {
+          "title": "Lời khuyên hữu ích",
+          "content": "Hoàn tất việc chuẩn bị giỏ đồ đi sinh. Thực hiện xét nghiệm liên cầu khuẩn nhóm B (GBS) theo chỉ định của bác sĩ."
+        }
+      ]
+    },
+    {
+      "week_number": 40,
+      "embryo_image": "assets/embryo_40.png",
+      "weight": { "value": "3400", "unit": "g" },
+      "length": { "value": "51.2", "unit": "cm" },
+      "current_week_and_days": "39 tuần và 3 ngày",
+      "trimester": "Tam cá nguyệt 3",
+      "date_of_labor": "07-Jul-2024",
+      "weeks_and_days_left": "Còn lại 0 tuần và 4 ngày",
+      "info_sections": [
+        {
+          "title": "Bé",
+          "content": "Bé đã sẵn sàng chào đời! Cơ thể bé đã đủ khả năng tự điều hòa các chức năng sống cơ bản bên ngoài tử cung."
+        },
+        {
+          "title": "Mẹ",
+          "content": "Cổ tử cung bắt đầu mỏng đi và giãn ra. Bạn có thể thấy dịch nhầy màu hồng hoặc các cơn gò dồn dập hơn."
+        },
+        {
+          "title": "Lời khuyên hữu ích",
+          "content": "Giữ tâm lý thoải mái. Nếu có dấu hiệu vỡ ối hoặc cơn gò đều đặn (5-10 phút/lần), hãy đến ngay bệnh viện."
+        }
+      ]
+    }
+  ]
+}

@@ -123,9 +123,14 @@ export default function ProfilePage() {
         payload.append('avatar', avatarFile);
       }
 
+      const tokenMatch = document.cookie.match(/pregtap_access_token=([^;]+)/);
+      const token = tokenMatch ? decodeURIComponent(tokenMatch[1]) : undefined;
+
       const response = await fetch('/api/auth/profile', {
         method: 'PUT',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: payload,
+        credentials: 'include',
       });
 
       const result = (await response.json()) as ApiResponse<AuthUser>;

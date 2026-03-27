@@ -1,12 +1,8 @@
-import { cookies } from 'next/headers';
-
-import { ACCESS_COOKIE_NAME } from '@/lib/auth';
 import { proxyProfileUpdate } from '@/lib/auth-proxy';
+import { getBearerToken } from '@/lib/helpers';
 
 export async function PUT(request: Request) {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get(ACCESS_COOKIE_NAME)?.value;
+  const accessToken = getBearerToken(request);
   const formData = await request.formData();
-
   return proxyProfileUpdate(accessToken, formData);
 }

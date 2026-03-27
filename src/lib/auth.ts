@@ -1,10 +1,6 @@
-const authApiBaseUrl = process.env.AUTH_API_BASE_URL;
-
-if (!authApiBaseUrl) {
-  throw new Error('Missing AUTH_API_BASE_URL environment variable.');
-}
-
-export const AUTH_API_BASE_URL = authApiBaseUrl.replace(/\/$/, '');
+export const AUTH_API_BASE_URL =
+  (typeof process !== 'undefined' && (process.env?.AUTH_API_BASE_URL ?? '')) ||
+  '';
 
 export const ACCESS_COOKIE_NAME = 'pregtap_access_token';
 export const REFRESH_COOKIE_NAME = 'pregtap_refresh_token';

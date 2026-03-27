@@ -1,0 +1,12 @@
+{
+  "typescript.tsconfigRootDir": "${workspaceFolder}",
+  "javascript.tsconfigRootDir": "${workspaceFolder}",
+  "tailwindCSS.includeLanguages": {
+    "typescript": "typescript",
+    "typescriptreact": "tsx"
+  },
+  "tailwindCSS.styleSheetContent": true,
+  "tailwindCSS.experimental.classAttributes": {
+    "fileExtensions": ["tsx", "jsx", "js"]
+  }
+}
