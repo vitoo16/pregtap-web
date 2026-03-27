@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   title: "PregTap - Người bạn đồng hành thai kỳ",
   description: "Nền tảng chăm sóc thai kỳ toàn diện. Bắt đầu hành trình làm mẹ an tâm, khoa học và ngập tràn niềm vui.",
   keywords: ["pregnancy", "thai kỳ", "chăm sóc thai kỳ", "mang thai", "pregnancy tracker"],
+  icons: {
+    icon: "/splash_logo_embedded.png",
+  },
 };
 
 export default function RootLayout({
