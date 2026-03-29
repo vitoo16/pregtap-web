@@ -29,6 +29,11 @@ const initialRegisterForm: RegisterRequest = {
   preferredLanguage: 'vi',
 };
 
+const initialRegisterState: RegisterRequest & { confirmPassword: string } = {
+  ...initialRegisterForm,
+  confirmPassword: '',
+};
+
 function getApiMessage(payload: ApiResponse<AuthResponse> | null, fallback: string) {
   if (!payload) {
     return fallback;
@@ -43,7 +48,7 @@ function getApiMessage(payload: ApiResponse<AuthResponse> | null, fallback: stri
 
 export function AuthModal({ isOpen, mode, onClose, onModeChange, onSuccess }: AuthModalProps) {
   const [loginForm, setLoginForm] = useState<LoginRequest>(initialLoginForm);
-  const [registerForm, setRegisterForm] = useState<RegisterRequest>(initialRegisterForm);
+  const [registerForm, setRegisterForm] = useState(initialRegisterState);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -66,8 +71,16 @@ export function AuthModal({ isOpen, mode, onClose, onModeChange, onSuccess }: Au
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsSubmitting(true);
     setFeedback(null);
+
+    if (mode === 'register') {
+      if (registerForm.password !== registerForm.confirmPassword) {
+        setFeedback({ type: 'error', message: 'Mật khẩu xác nhận không khớp.' });
+        return;
+      }
+    }
+
+    setIsSubmitting(true);
 
     const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
     const body = mode === 'login' ? loginForm : registerForm;
@@ -102,7 +115,7 @@ export function AuthModal({ isOpen, mode, onClose, onModeChange, onSuccess }: Au
       if (mode === 'login') {
         setLoginForm(initialLoginForm);
       } else {
-        setRegisterForm(initialRegisterForm);
+        setRegisterForm(initialRegisterState);
       }
 
       window.setTimeout(() => {
@@ -259,15 +272,15 @@ export function AuthModal({ isOpen, mode, onClose, onModeChange, onSuccess }: Au
                     </label>
 
                     <label className="block">
-                      <span className="mb-2 block text-sm font-semibold text-[#3E2723]">Ngôn ngữ ưu tiên</span>
-                      <select
-                        value={registerForm.preferredLanguage}
-                        onChange={(event) => setRegisterForm((current) => ({ ...current, preferredLanguage: event.target.value }))}
+                      <span className="mb-2 block text-sm font-semibold text-[#3E2723]">Xác nhận mật khẩu</span>
+                      <input
+                        type="password"
+                        value={registerForm.confirmPassword}
+                        onChange={(event) => setRegisterForm((current) => ({ ...current, confirmPassword: event.target.value }))}
                         className="w-full rounded-2xl border border-[#FF9690]/20 bg-[#FFF8F7] px-4 py-3 text-sm text-[#3E2723] outline-none transition focus:border-[#FF9690] focus:bg-white"
-                      >
-                        <option value="vi">Tiếng Việt</option>
-                        <option value="en">English</option>
-                      </select>
+                        placeholder="Nhập lại mật khẩu"
+                        required
+                      />
                     </label>
                   </div>
                 </>
