@@ -112,6 +112,9 @@ export function AuthModal({ isOpen, mode, onClose, onModeChange, onSuccess }: Au
 
       onSuccess(payload.data, mode);
 
+      // Tell AuthProvider to refresh user data
+      window.dispatchEvent(new Event('auth:refresh'));
+
       if (mode === 'login') {
         setLoginForm(initialLoginForm);
       } else {

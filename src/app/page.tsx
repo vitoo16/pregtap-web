@@ -1369,7 +1369,9 @@ function HomeContent() {
       tone: 'success',
       message: mode === 'login' ? 'Đăng nhập thành công.' : 'Tạo tài khoản thành công.',
     });
-    // Redirect to /app after successful login, removing ?login=true from URL
+    // Redirect to /app after successful login, removing ?login=true from URL.
+    // The app/layout's PregnancyContext will auto-fetch pregnancy data on mount
+    // because the token is already stored in localStorage by AuthModal.
     window.setTimeout(() => {
       router.replace('/app');
     }, 600);

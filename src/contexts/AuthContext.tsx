@@ -63,6 +63,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     void refreshUser().finally(() => setIsLoading(false));
   }, [refreshUser]);
 
+  // Listen for auth refresh events dispatched after login/register
+  useEffect(() => {
+    const handleRefresh = () => {
+      void refreshUser();
+    };
+    window.addEventListener('auth:refresh', handleRefresh);
+    return () => window.removeEventListener('auth:refresh', handleRefresh);
+  }, [refreshUser]);
+
   const login = useCallback(async (email: string, password: string) => {
     const body: LoginRequest = { emailOrPhone: email, password };
     const response = await fetch('/api/auth/login', {
