@@ -943,7 +943,9 @@ function Premium({
       }
 
       try {
+        const token = getAccessToken();
         const response = await fetch('/api/subscriptions/status', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
           cache: 'no-store',
         });
 
@@ -974,10 +976,12 @@ function Premium({
     setPaymentFeedback(null);
 
     try {
+      const token = getAccessToken();
       const response = await fetch('/api/subscriptions/purchase', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({ plan: planCode }),
       });
