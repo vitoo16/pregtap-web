@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Modal } from '@/components/app/shared/Modal';
+import { getAccessToken } from '@/lib/token-store';
 
 const APP_VERSION = '1.0.0';
 
@@ -83,25 +84,23 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen pb-8">
-      {/* Header */}
-      <div
-        className="relative overflow-hidden px-6 pt-6 pb-8 md:px-10"
-        style={{
-          background: 'linear-gradient(135deg, #FF9690 0%, #DA927B 100%)',
-          borderRadius: '0 0 40px 40px',
-        }}
-      >
-        <div className="absolute right-[-20px] top-[-20px] h-[100px] w-[100px] rounded-full opacity-10" style={{ background: 'white' }} />
-        <div className="absolute -bottom-6 left-[-10px] h-[80px] w-[80px] rounded-full opacity-10" style={{ background: 'white' }} />
-
+      {/* Page header with user profile */}
+      <div className="app-page-header">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="flex items-center gap-4"
         >
+          <h1 className="page-title">Cài đặt</h1>
+          <p className="page-subtitle">Quản lý tài khoản và ứng dụng</p>
+        </motion.div>
+      </div>
+
+      {/* User profile card */}
+      <div className="app-page-content">
+        <div className="mb-8 flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm lg:max-w-xl">
           {/* Avatar */}
-          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/30 text-xl font-extrabold text-white shadow-sm">
+          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#FF9690] to-[#FF7A74] text-xl font-extrabold text-white shadow-sm">
             {user?.avatarUrl ? (
               <img src={user.avatarUrl} alt={displayName} className="h-full w-full object-cover" />
             ) : (
@@ -110,102 +109,105 @@ export default function SettingsPage() {
           </div>
 
           <div>
-            <h1 className="text-xl font-bold text-white">{displayName}</h1>
+            <h2 className="text-base font-bold text-[#3E2723]">{displayName}</h2>
             {user?.email && (
-              <p className="text-sm text-white/80">{user.email}</p>
+              <p className="text-sm text-[#757575]">{user.email}</p>
             )}
             {user?.phone && !user?.email && (
-              <p className="text-sm text-white/80">{user.phone}</p>
+              <p className="text-sm text-[#757575]">{user.phone}</p>
             )}
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Content */}
       <div className="app-page-content">
-        {/* Account section */}
-        <div className="mb-6">
-          <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-[#999]">
-            Tài khoản
-          </h2>
-          <div className="flex flex-col gap-3">
-            <SettingRow
-              href="/profile"
-              icon={
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-              }
-              title="Chỉnh sửa hồ sơ"
-              subtitle="Cập nhật thông tin cá nhân"
-            />
+        {/* Two-column layout for desktop */}
+        <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
+          {/* Account section */}
+          <div>
+            <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-[#999]">
+              Tài khoản
+            </h2>
+            <div className="flex flex-col gap-3">
+              <SettingRow
+                href="/profile"
+                icon={
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                }
+                title="Chỉnh sửa hồ sơ"
+                subtitle="Cập nhật thông tin cá nhân"
+              />
 
-            <SettingRow
-              href="/app/setup"
-              icon={
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
-              }
-              title="Chỉnh sửa thai kỳ"
-              subtitle="Cập nhật thông tin thai kỳ"
-            />
+              <SettingRow
+                href="/app/setup"
+                icon={
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                }
+                title="Chỉnh sửa thai kỳ"
+                subtitle="Cập nhật thông tin thai kỳ"
+              />
 
-            <SettingRow
-              onClick={() => setShowPasswordModal(true)}
-              icon={
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-              }
-              title="Đổi mật khẩu"
-              subtitle="Thay đổi mật khẩu đăng nhập"
-            />
+              <SettingRow
+                onClick={() => setShowPasswordModal(true)}
+                icon={
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                }
+                title="Đổi mật khẩu"
+                subtitle="Thay đổi mật khẩu đăng nhập"
+              />
+            </div>
           </div>
-        </div>
 
-        {/* App info section */}
-        <div className="mb-6">
-          <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-[#999]">
-            Ứng dụng
-          </h2>
-          <div className="flex flex-col gap-3">
-            <SettingRow
-              icon={
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-              }
-              title="Phiên bản"
-              subtitle={`PregTap v${APP_VERSION}`}
-            />
+          {/* App info section */}
+          <div>
+            <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-[#999]">
+              Ứng dụng
+            </h2>
+            <div className="flex flex-col gap-3">
+              <SettingRow
+                icon={
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                }
+                title="Phiên bản"
+                subtitle={`PregTap v${APP_VERSION}`}
+              />
 
-            <SettingRow
-              icon={
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                  <line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg>
-              }
-              title="Giới thiệu"
-              subtitle="Tìm hiểu thêm về PregTap"
-            />
+              <SettingRow
+                icon={
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                }
+                title="Giới thiệu"
+                subtitle="Tìm hiểu thêm về PregTap"
+              />
 
-            <SettingRow
-              icon={
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                  <polyline points="22,6 12,13 2,6" />
-                </svg>
-              }
-              title="Liên hệ hỗ trợ"
-              subtitle="Gửi email cho đội ngũ hỗ trợ"
-            />
+              <SettingRow
+                icon={
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                    <polyline points="22,6 12,13 2,6" />
+                  </svg>
+                }
+                title="Liên hệ hỗ trợ"
+                subtitle="Gửi email cho đội ngũ hỗ trợ"
+              />
+            </div>
           </div>
         </div>
 
@@ -266,7 +268,7 @@ export default function SettingsPage() {
         isOpen={showPasswordModal}
         onClose={() => setShowPasswordModal(false)}
         title="Đổi mật khẩu"
-        size="sm"
+        size="md"
       >
         <ChangePasswordForm onClose={() => setShowPasswordModal(false)} />
       </Modal>
@@ -303,8 +305,7 @@ function ChangePasswordForm({ onClose }: { onClose: () => void }) {
 
       setIsLoading(true);
       try {
-        const tokenMatch = document.cookie.match(/pregtap_access_token=([^;]+)/);
-        const token = tokenMatch ? decodeURIComponent(tokenMatch[1]) : undefined;
+        const token = getAccessToken() ?? undefined;
 
         const res = await fetch('/api/auth/change-password', {
           method: 'POST',

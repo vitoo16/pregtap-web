@@ -153,3 +153,36 @@ export async function proxyProfileUpdate(accessToken: string | undefined, formDa
     return createProxyErrorResponse('Không thể cập nhật hồ sơ người dùng.');
   }
 }
+
+export async function proxyChangePassword(accessToken: string | undefined, body: unknown) {
+  if (!accessToken) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Bạn chưa đăng nhập.',
+        statusCode: 401,
+        errors: ['Bạn chưa đăng nhập.'],
+        timestamp: new Date().toISOString(),
+      },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const upstream = await fetch(buildApiUrl('/Auth/change-password'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(body),
+      cache: 'no-store',
+    });
+
+    const payload = await parseUpstreamBody(upstream);
+    return NextResponse.json(payload, { status: upstream.status });
+  } catch {
+    return createProxyErrorResponse('Không thể đổi mật khẩu.');
+  }
+}
