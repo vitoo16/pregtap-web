@@ -36,8 +36,12 @@ async function fetchMealPlans(pregnancyId: string): Promise<ApiResponse<MealPlan
   return apiClient.get<MealPlan[]>(`/api/meal-plans`, { pregnancyId });
 }
 
-async function fetchMealPlanDetail(planId: string): Promise<ApiResponse<MealDay[]>> {
-  return apiClient.get<MealDay[]>(`/api/meal-plans/${planId}/days`);
+async function fetchMealPlanDetail(planId: string): Promise<ApiResponse<MealPlan>> {
+  return apiClient.get<MealPlan>(`/api/meal-plans/${planId}`);
+}
+
+async function fetchMealPlanDay(planId: string, date: string): Promise<ApiResponse<MealDay>> {
+  return apiClient.get<MealDay>(`/api/meal-plans/${planId}/days/${date}`);
 }
 
 async function fetchMealPlanStatus(planId: string): Promise<ApiResponse<MealPlan>> {
@@ -49,7 +53,7 @@ async function generateMealPlan(
   durationWeeks: number,
   additionalNotes?: string,
 ): Promise<ApiResponse<MealPlan>> {
-  return apiClient.post<MealPlan>(`/api/meal-plans/generate`, {
+  return apiClient.post<MealPlan>(`/api/meal-plans?pregnancyId=${pregnancyId}`, {
     startDate: format(new Date(), 'yyyy-MM-dd'),
     durationWeeks,
     additionalNotes,
@@ -96,18 +100,35 @@ export default function MealsPage() {
   const mealPlans: MealPlan[] = plansResponse?.data ?? [];
   const latestPlan = mealPlans[0];
 
-  // Meal plan days query
+  // Selected date key (must be before queries that use it)
+  const selectedDateKey = format(selectedDate, 'yyyy-MM-dd');
+
+  // Meal plan detail query (summary - for calendar)
   const {
-    data: daysResponse,
-    isLoading: daysLoading,
+    data: planDetailResponse,
+    isLoading: planDetailLoading,
   } = useQuery({
-    queryKey: ['meal-plan-days', currentPlanId],
+    queryKey: ['meal-plan-detail', currentPlanId],
     queryFn: () => fetchMealPlanDetail(currentPlanId!),
     enabled: !!currentPlanId,
     refetchInterval: false,
   });
 
-  const mealDays: MealDay[] = daysResponse?.data ?? [];
+  const planDays = planDetailResponse?.data?.days ?? [];
+
+  // Selected day detail query
+  const {
+    data: dayDetailResponse,
+    isLoading: dayDetailLoading,
+    refetch: refetchDayDetail,
+  } = useQuery({
+    queryKey: ['meal-plan-day', currentPlanId, selectedDateKey],
+    queryFn: () => fetchMealPlanDay(currentPlanId!, selectedDateKey),
+    enabled: !!currentPlanId && !!selectedDateKey,
+    refetchInterval: false,
+  });
+
+  const selectedDayDetail: MealDay = dayDetailResponse?.data ?? { date: selectedDateKey, weekday: '', meals: [] };
 
   // Auto-select latest plan
   useEffect(() => {
@@ -116,10 +137,10 @@ export default function MealsPage() {
     }
   }, [latestPlan, currentPlanId]);
 
-  // Build date -> meals map
-  const mealDatesMap = new Map<string, MealItem[]>();
-  mealDays.forEach((day) => {
-    mealDatesMap.set(day.date, day.meals);
+  // Build date -> plan days map (for calendar dots)
+  const mealDatesMap = new Map<string, { calories: number; mealCount: number }>();
+  planDays.forEach((day: { planDate: string; totalCalories: number; mealCount: number }) => {
+    mealDatesMap.set(day.planDate, { calories: day.totalCalories, mealCount: day.mealCount });
   });
 
   // Calendar days
@@ -129,8 +150,7 @@ export default function MealsPage() {
   });
 
   // Selected day meals
-  const selectedDayKey = format(selectedDate, 'yyyy-MM-dd');
-  const selectedDayMeals: MealItem[] = mealDatesMap.get(selectedDayKey) ?? [];
+  const selectedDayMeals: MealItem[] = selectedDayDetail.meals;
   const selectedDayMealsByType = MEAL_TYPE_ORDER.reduce(
     (acc, type) => {
       acc[type] = selectedDayMeals.filter((m) => m.mealType === type);
@@ -168,7 +188,8 @@ export default function MealsPage() {
         if (statusResp.data?.status === 'Succeeded') {
           setIsPolling(false);
           await queryClient.invalidateQueries({ queryKey: ['meal-plans'] });
-          await queryClient.invalidateQueries({ queryKey: ['meal-plan-days'] });
+          await queryClient.invalidateQueries({ queryKey: ['meal-plan-detail'] });
+          await queryClient.invalidateQueries({ queryKey: ['meal-plan-day'] });
           setCurrentPlanId(planId);
           return;
         }
@@ -293,7 +314,7 @@ export default function MealsPage() {
                   const isCurrentMonth = isSameMonth(day, focusedDate);
                   const isToday = isSameDay(day, today);
                   const isSelected = isSameDay(day, selectedDate);
-                  const hasMeals = mealDatesMap.has(format(day, 'yyyy-MM-dd'));
+                  const hasMeals = mealDatesMap.has(format(day, 'yyyy-MM-dd')) && (mealDatesMap.get(format(day, 'yyyy-MM-dd'))?.mealCount ?? 0) > 0;
                   const isSunday = day.getDay() === 0;
 
                   return (
@@ -329,27 +350,15 @@ export default function MealsPage() {
             </motion.div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setIsGenerateOpen(true)}
-                className="btn btn-primary flex-1 rounded-2xl px-5 py-3 text-sm"
-              >
-                <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-                </svg>
-                Tạo thực đơn AI
-              </button>
-              <button
-                onClick={() => router.push(`/app/meals/${format(selectedDate, 'yyyy-MM-dd')}`)}
-                className="flex h-12 items-center gap-2 rounded-2xl border-2 border-[#FF9690] px-4 text-sm font-semibold text-[#FF9690] transition-colors hover:bg-[#FDEEEE]"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-                  <rect x="9" y="3" width="6" height="4" rx="1"/>
-                </svg>
-                Chi tiết
-              </button>
-            </div>
+            <button
+              onClick={() => setIsGenerateOpen(true)}
+              className="btn btn-primary w-full rounded-2xl px-5 py-3 text-sm"
+            >
+              <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+              Tạo thực đơn AI
+            </button>
 
             {/* Existing Meal Plans */}
             {plansLoading ? (
@@ -402,9 +411,36 @@ export default function MealsPage() {
 
           {/* Right Column: Selected Day Meals */}
           <div>
-            {daysLoading ? (
-              <div className="flex justify-center py-12">
-                <LoadingSpinner />
+            {/* Loading skeleton */}
+            {(dayDetailLoading || planDetailLoading) && currentPlanId ? (
+              <div className="space-y-6">
+                <div className="card p-4 animate-pulse">
+                  <div className="h-6 w-48 rounded bg-gray-100" />
+                  <div className="mt-2 h-4 w-32 rounded bg-gray-100" />
+                </div>
+                {MEAL_TYPE_ORDER.map((type) => (
+                  <div key={type} className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-1.5 h-6 rounded-full ${
+                        type === 'Breakfast' ? 'bg-[#F97316]' :
+                        type === 'Lunch' ? 'bg-[#22C55E]' :
+                        type === 'Dinner' ? 'bg-[#EF4444]' :
+                        'bg-[#3B82F6]'
+                      }`} />
+                      <div className="h-4 w-20 rounded bg-gray-100" />
+                    </div>
+                    <div className="card p-3 animate-pulse">
+                      <div className="flex gap-3">
+                        <div className="h-20 w-20 rounded-xl bg-gray-100" />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 w-3/4 rounded bg-gray-100" />
+                          <div className="h-3 w-1/2 rounded bg-gray-100" />
+                          <div className="h-3 w-1/3 rounded bg-gray-100" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : !currentPlanId || mealPlans.length === 0 ? (
               <EmptyState

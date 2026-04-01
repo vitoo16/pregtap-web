@@ -13,13 +13,15 @@ import { WeekCircle } from '@/components/app/home/WeekCircle';
 import { StatCard } from '@/components/app/home/StatCard';
 import { QuickNavCard } from '@/components/app/home/QuickNavCard';
 import { type WeightLog, type ApiResponse } from '@/types';
+import { extractSubscriptionStatus, type SubscriptionStatus } from '@/lib/subscription';
+import { getAccessToken } from '@/lib/token-store';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface HomeWeightLog {
   id: string;
   weightKg: number;
-  logDate: string;
+  loggedOn: string;
 }
 
 // ─── Streak calculation ────────────────────────────────────────────────────────
@@ -30,7 +32,7 @@ function calcStreak(logs: HomeWeightLog[]): number {
   // Sort by date descending, cloning dates to avoid mutation
   const sorted = [...logs]
     .map((l) => {
-      const d = parseISO(l.logDate);
+      const d = parseISO(l.loggedOn);
       return { ...l, parsedDate: d };
     })
     .filter((l) => isValid(l.parsedDate))
@@ -152,13 +154,18 @@ export default function HomePage() {
   const [weightLogs, setWeightLogs] = useState<HomeWeightLog[]>([]);
   const [weightLoading, setWeightLoading] = useState(false);
   const [streak, setStreak] = useState(0);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
 
   // Fetch weight logs
   const fetchWeightLogs = useCallback(async () => {
     if (!pregnancy?.id) return;
     setWeightLoading(true);
     try {
-      const res = await fetch('/api/weight-logs', { credentials: 'include' });
+      const token = getAccessToken();
+      const res = await fetch(`/api/weight-logs?pregnancyId=${pregnancy?.id}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        credentials: 'include',
+      });
       const payload = (await res.json()) as ApiResponse<HomeWeightLog[]>;
       if (payload.success && payload.data) {
         setWeightLogs(payload.data);
@@ -176,6 +183,27 @@ export default function HomePage() {
       void fetchWeightLogs();
     }
   }, [pregnancy?.id, fetchWeightLogs]);
+
+  // Fetch subscription status
+  useEffect(() => {
+    async function loadStatus() {
+      try {
+        const token = getAccessToken();
+        const response = await fetch('/api/subscriptions/status', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          cache: 'no-store',
+        });
+        const payload = (await response.json()) as { success: boolean; data: unknown };
+        if (payload.success) {
+          setSubscriptionStatus(extractSubscriptionStatus(payload.data));
+        }
+      } catch {
+        // Silently fail
+      }
+    }
+
+    void loadStatus();
+  }, []);
 
   // Loading state
   if (pregnancyLoading) {
@@ -259,17 +287,16 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen pb-8">
-      {/* Oval gradient header */}
+      {/* Gradient header */}
       <div
-        className="relative overflow-hidden px-6 pt-6 pb-20 md:px-10"
+        className="relative overflow-hidden px-6 pt-8 pb-8 md:px-10"
         style={{
           background: 'linear-gradient(135deg, #FF9690 0%, #DA927B 100%)',
-          borderRadius: '0 0 48px 48px',
         }}
       >
         {/* Decorative elements */}
-        <div className="absolute right-[-30px] top-[-30px] h-[140px] w-[140px] rounded-full opacity-10" style={{ background: 'white' }} />
-        <div className="absolute -bottom-8 left-[-20px] h-[100px] w-[100px] rounded-full opacity-10" style={{ background: 'white' }} />
+        <div className="absolute right-0 top-0 h-48 w-48 rounded-full opacity-10 md:right-[-40px] md:top-[-40px]" style={{ background: 'white' }} />
+        <div className="absolute bottom-0 left-0 h-32 w-32 rounded-full opacity-10 md:left-[-20px] md:bottom-[-20px]" style={{ background: 'white' }} />
 
         {/* Page title */}
         <motion.div
@@ -297,8 +324,8 @@ export default function HomePage() {
         </motion.div>
       </div>
 
-      {/* Content below oval */}
-      <div className="app-page-content -mt-10">
+      {/* Content */}
+      <div className="app-page-content">
         {/* Stats row */}
         <div className="mb-5 flex gap-3">
           <StatCard
@@ -400,6 +427,37 @@ export default function HomePage() {
             </div>
           </div>
         </motion.div>
+
+        {/* Premium upgrade banner — only shown if user is NOT premium */}
+        {!subscriptionStatus?.isPremium && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55, duration: 0.4 }}
+            className="card mt-4 overflow-hidden"
+          >
+            <div className="h-1.5 bg-linear-to-r from-[#FF9690] to-[#FFB87A]" />
+            <div className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-[#FF9690]/10 to-[#FFB87A]/10">
+                  <svg className="h-5 w-5 text-[#FF9690]" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-[#3E2723]">Nâng cấp Premium</p>
+                  <p className="text-xs text-[#757575]">Mở khóa toàn bộ tính năng PregTap</p>
+                </div>
+                <Link
+                  href="/app/subscription"
+                  className="flex-shrink-0 rounded-full bg-linear-to-r from-[#FF9690] to-[#FF7A74] px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                >
+                  Xem gói
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Due date info card */}
         {pregnancy.expectedDeliveryDate && (

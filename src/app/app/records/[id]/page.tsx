@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
@@ -67,6 +67,20 @@ export default function DocumentDetailPage({ params }: PageProps) {
     },
     enabled: !!document?.ocrResult && document.ocrResult.status !== 'Confirmed',
   });
+
+  // Auto trigger OCR when document loads without OCR result
+  const autoOcrMutation = useMutation({
+    mutationFn: () => triggerOcr(documentId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['document-detail', documentId] });
+    },
+  });
+
+  useEffect(() => {
+    if (document && !document.ocrResult && !autoOcrMutation.isPending && !autoOcrMutation.isSuccess) {
+      void autoOcrMutation.mutateAsync();
+    }
+  }, [document, autoOcrMutation.isPending, autoOcrMutation.isSuccess]);
 
   const ocrStatus = ocrStatusResponse ?? document?.ocrResult?.status ?? '';
   const isOcrProcessing = ocrStatus === 'Pending' || ocrStatus === 'OcrProcessing' || ocrStatus === 'AiExtracting';

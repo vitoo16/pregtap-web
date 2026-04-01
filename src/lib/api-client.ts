@@ -21,6 +21,67 @@ function buildUrl(path: string, params?: Record<string, string | number | boolea
   return url.toString();
 }
 
+// Convert PascalCase key to camelCase (e.g., "VisitDate" → "visitDate")
+function toCamelCase(key: string): string {
+  if (!key) return key;
+  return key.charAt(0).toLowerCase() + key.slice(1);
+}
+
+// Recursively convert all PascalCase keys to camelCase in BE responses
+function convertKeys(obj: unknown): unknown {
+  if (Array.isArray(obj)) {
+    return obj.map(convertKeys);
+  }
+  if (obj !== null && typeof obj === 'object') {
+    const record = obj as Record<string, unknown>;
+    // BE wraps list responses in { items: [...] } — unwrap it
+    if ('items' in record && Array.isArray(record.items)) {
+      return {
+        ...record,
+        items: convertKeys(record.items),
+      };
+    }
+    const result: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(record)) {
+      result[toCamelCase(k)] = convertKeys(v);
+    }
+    return result;
+  }
+  return obj;
+}
+
+function normalizeResponse<T>(raw: unknown): ApiResponse<T> {
+  const converted = convertKeys(raw) as Record<string, unknown>;
+
+  // If it's already a proper ApiResponse (with camelCase "success"), return it
+  if (
+    converted !== null &&
+    'success' in converted &&
+    typeof converted.success === 'boolean'
+  ) {
+    // BE wraps list data in { items: [...] } — unwrap items to data
+    if ('data' in converted && converted.data !== null && typeof converted.data === 'object') {
+      const dataRecord = converted.data as Record<string, unknown>;
+      if ('items' in dataRecord && Array.isArray(dataRecord.items)) {
+        return {
+          success: true,
+          statusCode: 200,
+          timestamp: new Date().toISOString(),
+          data: dataRecord.items as T,
+        };
+      }
+    }
+    return converted as ApiResponse<T>;
+  }
+  // BE returns raw array/object — wrap it
+  return {
+    success: true,
+    statusCode: 200,
+    timestamp: new Date().toISOString(),
+    data: converted as T,
+  };
+}
+
 async function request<T>(
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
   path: string,
@@ -51,8 +112,8 @@ async function request<T>(
     throw new Error('Unauthorized');
   }
 
-  const data = (await response.json()) as ApiResponse<T>;
-  return data;
+  const raw = await response.json();
+  return normalizeResponse<T>(raw);
 }
 
 export const apiClient = {

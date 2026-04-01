@@ -18,12 +18,12 @@ import { EmptyState } from '@/components/app/shared/EmptyState';
 
 // ─── API fetch helpers ──────────────────────────────────────────────────────
 
-async function fetchWeightLogs(): Promise<ApiResponse<WeightLog[]>> {
-  return apiClient.get<WeightLog[]>('/api/weight-logs');
+async function fetchWeightLogs(pregnancyId: string): Promise<ApiResponse<WeightLog[]>> {
+  return apiClient.get<WeightLog[]>('/api/weight-logs', { pregnancyId });
 }
 
-async function fetchWeightGoal(): Promise<ApiResponse<WeightGoalRange>> {
-  return apiClient.get<WeightGoalRange>('/api/weight-goals');
+async function fetchWeightGoal(pregnancyId: string): Promise<ApiResponse<WeightGoalRange>> {
+  return apiClient.get<WeightGoalRange>('/api/weight-goals', { pregnancyId });
 }
 
 // ─── Page ───────────────────────────────────────────────────────────────────
@@ -41,8 +41,8 @@ export default function WeightPage() {
     isLoading: logsLoading,
     error: logsError,
   } = useQuery({
-    queryKey: ['weight-logs'],
-    queryFn: fetchWeightLogs,
+    queryKey: ['weight-logs', pregnancy?.id],
+    queryFn: () => fetchWeightLogs(pregnancy!.id),
     enabled: !!pregnancy,
   });
 
@@ -50,21 +50,23 @@ export default function WeightPage() {
     data: goalResponse,
     isLoading: goalLoading,
   } = useQuery({
-    queryKey: ['weight-goals'],
-    queryFn: fetchWeightGoal,
+    queryKey: ['weight-goals', pregnancy?.id],
+    queryFn: () => fetchWeightGoal(pregnancy!.id),
     enabled: !!pregnancy,
   });
 
   // Derived data
-  const weightLogs = logsResponse?.data ?? [];
+  const weightLogs = Array.isArray(logsResponse?.data) ? logsResponse.data : [];
   const weightGoal = goalResponse?.data;
 
   // Sort logs for latest/current weight
   const sortedLogs = useMemo(
     () =>
-      [...weightLogs].sort(
-        (a, b) => new Date(b.logDate).getTime() - new Date(a.logDate).getTime(),
-      ),
+      Array.isArray(weightLogs)
+        ? [...weightLogs].sort(
+            (a, b) => new Date(b.loggedOn).getTime() - new Date(a.loggedOn).getTime(),
+          )
+        : [],
     [weightLogs],
   );
 
@@ -79,12 +81,12 @@ export default function WeightPage() {
     twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
 
     const recent = sortedLogs.find((log) => {
-      const d = parseISO(log.logDate);
+      const d = parseISO(log.loggedOn);
       return d <= today && d >= twoMonthsAgo;
     });
 
     const older = [...sortedLogs].reverse().find((log) => {
-      const d = parseISO(log.logDate);
+      const d = parseISO(log.loggedOn);
       return d < twoMonthsAgo;
     });
 
@@ -105,7 +107,7 @@ export default function WeightPage() {
     let currentDate = today;
 
     for (const log of sortedLogs) {
-      const logDate = parseISO(log.logDate);
+      const logDate = parseISO(log.loggedOn);
       logDate.setHours(0, 0, 0, 0);
       const diff = differenceInDays(currentDate, logDate);
 
@@ -128,10 +130,10 @@ export default function WeightPage() {
   // Mutations
   const createMutation = useMutation({
     mutationFn: (data: WeightFormData) =>
-      apiClient.post<WeightLog>('/api/weight-logs', {
-        logDate: data.logDate,
+      apiClient.post<WeightLog>(`/api/weight-logs?pregnancyId=${pregnancy?.id}`, {
+        loggedOn: data.logDate,
         weightKg: data.weightKg,
-        notes: data.notes,
+        note: data.notes,
         source: data.source,
       }),
     onSuccess: () => {

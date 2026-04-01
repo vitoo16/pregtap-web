@@ -227,14 +227,13 @@ export default function TrackPage() {
     <div className="min-h-screen pb-8">
       {/* Header */}
       <div
-        className="relative overflow-hidden px-6 pt-6 pb-8 md:px-10"
+        className="relative overflow-hidden px-6 pt-8 pb-8 md:px-10"
         style={{
           background: 'linear-gradient(135deg, #FF9690 0%, #DA927B 100%)',
-          borderRadius: '0 0 32px 32px',
         }}
       >
-        <div className="absolute right-[-25px] top-[-25px] h-[120px] w-[120px] rounded-full opacity-10" style={{ background: 'white' }} />
-        <div className="absolute -bottom-8 left-[-15px] h-[80px] w-[80px] rounded-full opacity-10" style={{ background: 'white' }} />
+        <div className="absolute right-0 top-0 h-40 w-40 rounded-full opacity-10 bg-white md:right-[-30px] md:top-[-30px]" />
+        <div className="absolute bottom-0 left-0 h-32 w-32 rounded-full opacity-10 bg-white md:left-[-20px] md:bottom-[-20px]" />
 
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -252,7 +251,7 @@ export default function TrackPage() {
       </div>
 
       {/* Week Selector */}
-      <div className="app-page-content -mt-4">
+      <div className="app-page-content">
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}

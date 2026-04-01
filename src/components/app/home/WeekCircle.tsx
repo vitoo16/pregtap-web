@@ -16,29 +16,30 @@ export function WeekCircle({
   progressPercentage,
   daysRemaining,
 }: WeekCircleProps) {
-  const size = 190;
+  // Fixed size that works on all screens
+  const size = 200;
   const borderWidth = 3;
   const center = size / 2;
   const radius = (size - borderWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-
-  // Arc goes from top (270deg / -90deg) clockwise
   const strokeDashoffset = circumference * (1 - progressPercentage / 100);
 
   return (
     <div className="flex flex-col items-center">
+      {/* Circle with all content inside */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="relative"
+        className="relative flex items-center justify-center"
         style={{ width: size, height: size }}
       >
+        {/* SVG background + progress */}
         <svg
           width={size}
           height={size}
           viewBox={`0 0 ${size} ${size}`}
-          style={{ position: 'absolute', top: 0, left: 0 }}
+          className="absolute inset-0"
         >
           {/* Background circle */}
           <circle
@@ -49,7 +50,6 @@ export function WeekCircle({
             stroke="rgba(255,255,255,0.3)"
             strokeWidth={borderWidth}
           />
-
           {/* Progress arc */}
           <motion.circle
             cx={center}
@@ -63,61 +63,79 @@ export function WeekCircle({
             initial={{ strokeDashoffset: circumference }}
             animate={{ strokeDashoffset }}
             transition={{ duration: 1.5, delay: 0.3, ease: 'easeOut' }}
-            style={{
-              transformOrigin: 'center',
-              transform: 'rotate(-90deg)',
-            }}
+            style={{ transformOrigin: 'center', transform: 'rotate(-90deg)' }}
+          />
+        </svg>
+        <svg
+          width={size}
+          height={size}
+          viewBox={`0 0 ${size} ${size}`}
+          className="absolute inset-0"
+        >
+          {/* Background circle */}
+          <circle
+            cx={center}
+            cy={center}
+            r={radius}
+            fill="none"
+            stroke="rgba(255,255,255,0.3)"
+            strokeWidth={borderWidth}
+          />
+          {/* Progress arc */}
+          <motion.circle
+            cx={center}
+            cy={center}
+            r={radius}
+            fill="none"
+            stroke="white"
+            strokeWidth={borderWidth}
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            initial={{ strokeDashoffset: circumference }}
+            animate={{ strokeDashoffset }}
+            transition={{ duration: 1.5, delay: 0.3, ease: 'easeOut' }}
+            style={{ transformOrigin: 'center', transform: 'rotate(-90deg)' }}
           />
         </svg>
 
-        {/* Content overlay */}
-        <div
-          className="absolute inset-0 flex flex-col items-center justify-center text-center text-white"
-          style={{ position: 'absolute', top: 0, left: 0, width: size, height: size }}
-        >
-          <span className="text-[11px] font-medium tracking-wider opacity-90">TUẦN</span>
+        {/* All labels inside the circle */}
+        <div className="relative flex w-full flex-col items-center justify-center text-center text-white">
+          {/* Top label: % complete */}
+          <div className="mb-1">
+            <span className="text-[10px] font-medium tracking-wider opacity-80">HOÀN THÀNH</span>
+            <motion.span
+              className="ml-1 text-sm font-bold"
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.4 }}
+            >
+              {progressPercentage.toFixed(1)}%
+            </motion.span>
+          </div>
+
+          {/* Center: Week number */}
           <motion.span
-            className="font-extrabold leading-none"
-            style={{ fontSize: 52 }}
+            className="text-[52px] font-extrabold leading-none"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.4 }}
           >
             {currentWeek}
           </motion.span>
-          <span className="text-[11px] opacity-80">+{currentDayInWeek} ngày</span>
-        </div>
+          <span className="text-[10px] opacity-80">+{currentDayInWeek} ngày</span>
 
-        {/* Left label: % complete */}
-        <div
-          className="absolute left-0 flex flex-col text-white"
-          style={{ top: center - 20, transform: 'translateY(-50%)' }}
-        >
-          <motion.span
-            className="text-xl font-bold leading-none"
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6, duration: 0.4 }}
-          >
-            {progressPercentage.toFixed(1)}%
-          </motion.span>
-          <span className="text-[10px] tracking-wider opacity-80">HOÀN THÀNH</span>
-        </div>
-
-        {/* Right label: days remaining */}
-        <div
-          className="absolute right-0 flex flex-col items-end text-white"
-          style={{ top: center - 20, transform: 'translateY(-50%)' }}
-        >
-          <motion.span
-            className="text-xl font-bold leading-none"
-            initial={{ opacity: 0, x: 8 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6, duration: 0.4 }}
-          >
-            {daysRemaining}
-          </motion.span>
-          <span className="text-[10px] tracking-wider opacity-80">NGÀY CÒN LẠI</span>
+          {/* Bottom label: days remaining */}
+          <div className="mt-1">
+            <motion.span
+              className="mr-1 text-sm font-bold"
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.4 }}
+            >
+              {daysRemaining}
+            </motion.span>
+            <span className="text-[10px] font-medium tracking-wider opacity-80">NGÀY CÒN LẠI</span>
+          </div>
         </div>
       </motion.div>
 

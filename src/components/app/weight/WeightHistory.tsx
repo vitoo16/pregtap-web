@@ -35,7 +35,7 @@ export function WeightHistory({ logs, isLoading, onEdit, onDelete }: WeightHisto
 
   // Sort logs by date descending (newest first)
   const sortedLogs = [...logs].sort(
-    (a, b) => new Date(b.logDate).getTime() - new Date(a.logDate).getTime(),
+    (a, b) => new Date(b.loggedOn).getTime() - new Date(a.loggedOn).getTime(),
   );
 
   async function handleDelete() {
@@ -96,9 +96,9 @@ export function WeightHistory({ logs, isLoading, onEdit, onDelete }: WeightHisto
             {sortedLogs.map((log, index) => {
               const previousLog = index < sortedLogs.length - 1 ? sortedLogs[index + 1] : null;
               const change = getWeightChange(log, previousLog);
-              const logDate = parseISO(log.logDate);
+              const logDate = parseISO(log.loggedOn);
               const isLogToday = isToday(logDate);
-              const daysDiff = previousLog ? Math.abs(differenceInDays(logDate, parseISO(previousLog.logDate))) : 0;
+              const daysDiff = previousLog ? Math.abs(differenceInDays(logDate, parseISO(previousLog.loggedOn))) : 0;
 
               return (
                 <motion.div
@@ -203,7 +203,7 @@ export function WeightHistory({ logs, isLoading, onEdit, onDelete }: WeightHisto
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Xóa bản ghi cân nặng"
-        message={`Bạn có chắc chắn muốn xóa bản ghi ngày ${deleteTarget ? format(parseISO(deleteTarget.logDate), 'dd/MM/yyyy') : ''}? Hành động này không thể hoàn tác.`}
+        message={`Bạn có chắc chắn muốn xóa bản ghi ngày ${deleteTarget ? format(parseISO(deleteTarget.loggedOn), 'dd/MM/yyyy') : ''}? Hành động này không thể hoàn tác.`}
         confirmText="Xóa"
         cancelText="Hủy"
         variant="danger"

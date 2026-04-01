@@ -17,8 +17,8 @@ type VisitFormValues = {
   notes: string;
 };
 
-async function createVisit(data: VisitFormValues): Promise<ApiResponse<PrenatalVisit>> {
-  return apiClient.post<PrenatalVisit>('/api/visits', data);
+async function createVisit(pregnancyId: string, data: VisitFormValues): Promise<ApiResponse<PrenatalVisit>> {
+  return apiClient.post<PrenatalVisit>(`/api/visits?pregnancyId=${pregnancyId}`, data);
 }
 
 async function updateVisit(
@@ -46,7 +46,8 @@ export default function VisitsPage() {
   const [showNoPregnancyWarning, setShowNoPregnancyWarning] = useState(false);
 
   const createMutation = useMutation({
-    mutationFn: createVisit,
+    mutationFn: ({ pregnancyId, data }: { pregnancyId: string; data: VisitFormValues }) =>
+      createVisit(pregnancyId, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['visits'] });
       setShowForm(false);
@@ -82,10 +83,10 @@ export default function VisitsPage() {
       if (editingVisit) {
         await updateMutation.mutateAsync({ id: editingVisit.id, data });
       } else {
-        await createMutation.mutateAsync(data);
+        await createMutation.mutateAsync({ pregnancyId: pregnancy!.id, data });
       }
     },
-    [editingVisit, createMutation, updateMutation],
+    [editingVisit, createMutation, updateMutation, pregnancy],
   );
 
   const handleCloseForm = useCallback(() => {
@@ -100,14 +101,13 @@ export default function VisitsPage() {
     <div className="min-h-screen pb-20">
       {/* Header */}
       <div
-        className="relative overflow-hidden px-6 pt-6 pb-8 md:px-10"
+        className="relative overflow-hidden px-6 pt-8 pb-8 md:px-10"
         style={{
           background: 'linear-gradient(135deg, #FF9690 0%, #DA927B 100%)',
-          borderRadius: '0 0 40px 40px',
         }}
       >
-        <div className="absolute right-[-20px] top-[-20px] h-[100px] w-[100px] rounded-full opacity-10" style={{ background: 'white' }} />
-        <div className="absolute -bottom-6 left-[-10px] h-[80px] w-[80px] rounded-full opacity-10" style={{ background: 'white' }} />
+        <div className="absolute right-0 top-0 h-40 w-40 rounded-full opacity-10 bg-white md:right-[-30px] md:top-[-30px]" />
+        <div className="absolute bottom-0 left-0 h-32 w-32 rounded-full opacity-10 bg-white md:left-[-20px] md:bottom-[-20px]" />
 
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -128,7 +128,7 @@ export default function VisitsPage() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="mx-4 -mt-4 mb-4 flex items-center gap-3 rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3"
+            className="mx-4 mt-4 mb-4 flex items-center gap-3 rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3"
           >
             <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-yellow-100">
               <svg className="h-4 w-4 text-yellow-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

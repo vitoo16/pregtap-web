@@ -30,7 +30,7 @@ async function toggleFavorite(documentId: string, isFavorite: boolean): Promise<
 
 // ─── Upload helper ────────────────────────────────────────────────────────────
 
-async function uploadDocument(pregnancyId: string, data: UploadData): Promise<void> {
+async function uploadDocument(pregnancyId: string, data: UploadData): Promise<MedicalDocument> {
   const formData = new FormData();
   for (const file of data.files) {
     formData.append('files', file);
@@ -65,6 +65,28 @@ async function uploadDocument(pregnancyId: string, data: UploadData): Promise<vo
   const result = await response.json() as ApiResponse<MedicalDocument>;
   if (!result.success) {
     throw new Error(result.message ?? 'Upload failed');
+  }
+  return result.data;
+}
+
+async function triggerOcr(documentId: string): Promise<void> {
+  const tokenMatch = document.cookie.match(/(?:^| )pregtap_access_token=([^;]+)/);
+  const token = tokenMatch ? decodeURIComponent(tokenMatch[1]) : null;
+
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${window.location.origin}/api/documents/${documentId}/ocr/process`, {
+    method: 'POST',
+    headers,
+    credentials: 'include',
+  });
+
+  if (response.status === 401) {
+    window.location.href = '/?auth=expired';
+    throw new Error('Unauthorized');
   }
 }
 
@@ -109,8 +131,10 @@ export default function MedicalRecordsPage() {
   const handleUpload = useCallback(
     async (data: UploadData) => {
       if (!pregnancy) return;
-      await uploadDocument(pregnancy.id, data);
+      const doc = await uploadDocument(pregnancy.id, data);
       void queryClient.invalidateQueries({ queryKey: ['medical-documents'] });
+      // Auto trigger OCR
+      void triggerOcr(doc.id);
     },
     [pregnancy, queryClient],
   );

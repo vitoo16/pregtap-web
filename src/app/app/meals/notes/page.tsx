@@ -26,9 +26,9 @@ async function createNutritionNote(
   noteType: string,
   content: string,
 ): Promise<ApiResponse<NutritionNote>> {
-  return apiClient.post<NutritionNote>(`/api/nutrition-notes`, {
+  return apiClient.post<NutritionNote>(`/api/nutrition-notes?pregnancyId=${pregnancyId}`, {
     noteType,
-    content,
+    valueText: content,
   });
 }
 
@@ -38,14 +38,14 @@ async function updateNutritionNote(
   noteType: string,
   content: string,
 ): Promise<ApiResponse<NutritionNote>> {
-  return apiClient.put<NutritionNote>(`/api/nutrition-notes/${noteId}`, {
+  return apiClient.put<NutritionNote>(`/api/nutrition-notes/${noteId}?pregnancyId=${pregnancyId}`, {
     noteType,
-    content,
+    valueText: content,
   });
 }
 
 async function deleteNutritionNote(pregnancyId: string, noteId: string): Promise<ApiResponse<void>> {
-  return apiClient.delete<void>(`/api/nutrition-notes/${noteId}`);
+  return apiClient.delete<void>(`/api/nutrition-notes/${noteId}?pregnancyId=${pregnancyId}`);
 }
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -154,7 +154,7 @@ export default function NutritionNotesPage() {
   const openEditForm = (note: NutritionNote) => {
     setEditingNote(note);
     setNoteType(note.noteType as NoteType);
-    setNoteContent(note.content);
+    setNoteContent(note.valueText);
     setIsAddOpen(true);
   };
 
@@ -330,7 +330,7 @@ export default function NutritionNotesPage() {
                   {/* Content */}
                   <div className="mt-3">
                     <p className="text-sm text-[#3E2723] leading-relaxed whitespace-pre-line">
-                      {note.content}
+                      {note.valueText}
                     </p>
                   </div>
                 </motion.div>

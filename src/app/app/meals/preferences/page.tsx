@@ -23,14 +23,14 @@ async function createFoodPreference(
   foodItemId: string,
   preferenceType: 'Allergy' | 'Dislike',
 ): Promise<ApiResponse<FoodPreference>> {
-  return apiClient.post<FoodPreference>(`/api/food-preferences`, {
+  return apiClient.post<FoodPreference>(`/api/food-preferences?pregnancyId=${pregnancyId}`, {
     foodItemId,
     preferenceType,
   });
 }
 
 async function deleteFoodPreference(pregnancyId: string, prefId: string): Promise<ApiResponse<void>> {
-  return apiClient.delete<void>(`/api/food-preferences/${prefId}`);
+  return apiClient.delete<void>(`/api/food-preferences/${prefId}?pregnancyId=${pregnancyId}`);
 }
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -182,7 +182,7 @@ export default function FoodPreferencesPage() {
                 color: iconColor,
               }}
             >
-              <span>{pref.refFoodItemName ?? pref.refFoodItemId ?? 'Món ăn'}</span>
+              <span>{pref.foodItemDisplayName ?? pref.foodItemId ?? 'Món ăn'}</span>
               <button
                 onClick={() => deleteMutation.mutate(pref.id)}
                 disabled={deleteMutation.isPending}

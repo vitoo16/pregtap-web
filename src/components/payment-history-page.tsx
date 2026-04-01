@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 
 import { type ApiResponse } from '@/lib/auth';
+import { getAccessToken } from '@/lib/token-store';
 import {
   extractSubscriptionHistory,
   formatCurrencyVnd,
@@ -53,7 +54,10 @@ export default function PaymentHistoryPage() {
   useEffect(() => {
     async function loadHistory() {
       try {
+        const token = getAccessToken();
         const response = await fetch('/api/subscriptions/history', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          credentials: 'include',
           cache: 'no-store',
         });
 

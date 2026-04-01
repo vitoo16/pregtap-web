@@ -15,6 +15,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const accessToken = getBearerToken(request);
+  const { id } = await params;
   const formData = await request.formData();
-  return proxyPostMultipart('/documents', accessToken, formData);
+  return proxyPostMultipart(`/pregnancies/${id}/documents`, accessToken, formData);
 }

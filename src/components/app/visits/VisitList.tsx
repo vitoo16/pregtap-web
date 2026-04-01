@@ -9,9 +9,10 @@ import { apiClient } from '@/lib/api-client';
 import { type PrenatalVisit, type VisitType, type ApiResponse } from '@/types';
 import { Badge } from '@/components/app/shared/Badge';
 import { EmptyState } from '@/components/app/shared/EmptyState';
+import { usePregnancy } from '@/contexts/PregnancyContext';
 
-async function fetchVisits(): Promise<ApiResponse<PrenatalVisit[]>> {
-  return apiClient.get<PrenatalVisit[]>('/api/visits');
+async function fetchVisits(pregnancyId: string): Promise<ApiResponse<PrenatalVisit[]>> {
+  return apiClient.get<PrenatalVisit[]>('/api/visits', { pregnancyId });
 }
 
 async function deleteVisit(id: string): Promise<ApiResponse<void>> {
@@ -189,11 +190,13 @@ type VisitListProps = {
 };
 
 export function VisitList({ filterType = 'all', onEdit }: VisitListProps) {
+  const { pregnancy } = usePregnancy();
   const queryClient = useQueryClient();
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['visits'],
-    queryFn: fetchVisits,
+    queryKey: ['visits', pregnancy?.id],
+    queryFn: () => fetchVisits(pregnancy!.id),
+    enabled: !!pregnancy?.id,
     retry: 1,
   });
 

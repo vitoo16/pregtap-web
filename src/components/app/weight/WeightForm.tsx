@@ -39,7 +39,7 @@ export function WeightForm({ isOpen, onClose, onSubmit, initialLog, isLoading }:
   useEffect(() => {
     if (isOpen) {
       if (initialLog) {
-        setLogDate(initialLog.logDate.split('T')[0]);
+        setLogDate((initialLog.loggedOn || initialLog.logDate || '').split('T')[0]);
         setWeight(initialLog.weightKg.toFixed(1));
         setNotes(initialLog.notes ?? '');
       } else {
@@ -132,16 +132,6 @@ export function WeightForm({ isOpen, onClose, onSubmit, initialLog, isLoading }:
                   : 'border-gray-100 focus:border-[#FF9690]'
               }`}
             />
-            {!isEditMode && (
-              <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[#999]">
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                  <line x1="16" y1="2" x2="16" y2="6" />
-                  <line x1="8" y1="2" x2="8" y2="6" />
-                  <line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-              </span>
-            )}
           </div>
           {isEditMode && (
             <p className="mt-1 text-xs text-[#999]">Chỉ cho phép chỉnh sửa cân nặng và ghi chú</p>

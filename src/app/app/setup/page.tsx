@@ -358,18 +358,11 @@ export default function SetupPage() {
         className="relative overflow-hidden px-6 pt-8 pb-12 md:px-10"
         style={{
           background: 'linear-gradient(135deg, #FF9690 0%, #DA927B 100%)',
-          borderRadius: '0 0 32px 32px',
         }}
       >
         {/* Decorative circles */}
-        <div
-          className="absolute right-[-40px] top-[-40px] h-[160px] w-[160px] rounded-full opacity-10"
-          style={{ background: 'white' }}
-        />
-        <div
-          className="absolute -bottom-10 left-[-30px] h-[120px] w-[120px] rounded-full opacity-10"
-          style={{ background: 'white' }}
-        />
+        <div className="absolute right-0 top-0 h-48 w-48 rounded-full opacity-10 bg-white md:right-[-40px] md:top-[-40px]" />
+        <div className="absolute bottom-0 left-0 h-36 w-36 rounded-full opacity-10 bg-white md:left-[-30px] md:bottom-[-30px]" />
 
         <motion.div
           initial={{ opacity: 0, y: -12 }}
@@ -394,7 +387,7 @@ export default function SetupPage() {
       </div>
 
       {/* Form */}
-      <div className="app-page-content -mt-4">
+      <div className="app-page-content">
         <form onSubmit={handleSubmit} noValidate>
           {/* Section 1: Ngày tháng quan trọng */}
           <FormSection title="Ngày tháng quan trọng" index={1}>

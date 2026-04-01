@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 
 import { type ApiResponse, type AuthUser, type ProfileFormValues } from '@/lib/auth';
 import { extractSubscriptionStatus, formatDateVi, getPlanLabel, type SubscriptionStatus } from '@/lib/subscription';
+import { getAccessToken } from '@/lib/token-store';
 
 const initialFormValues: ProfileFormValues = {
   fullName: '',
@@ -23,14 +24,6 @@ function mapUserToForm(user: AuthUser): ProfileFormValues {
   };
 }
 
-function buildProfileSubtitle(user: AuthUser | null) {
-  if (!user) {
-    return 'Cập nhật thông tin cá nhân, số điện thoại và ngôn ngữ sử dụng để trải nghiệm được cá nhân hóa hơn.';
-  }
-
-  return user.email ?? 'Tài khoản PregTap';
-}
-
 export default function ProfilePage() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [form, setForm] = useState<ProfileFormValues>(initialFormValues);
@@ -44,7 +37,10 @@ export default function ProfilePage() {
   useEffect(() => {
     async function loadProfile() {
       try {
+        const token = getAccessToken();
         const response = await fetch('/api/auth/me', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          credentials: 'include',
           cache: 'no-store',
         });
 
@@ -64,6 +60,8 @@ export default function ProfilePage() {
         setAvatarPreview(payload.data.avatarUrl ?? null);
 
         const subscriptionResponse = await fetch('/api/subscriptions/status', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          credentials: 'include',
           cache: 'no-store',
         });
         const subscriptionPayload = (await subscriptionResponse.json()) as ApiResponse<unknown>;
@@ -171,7 +169,9 @@ export default function ProfilePage() {
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#FF9690]">PregTap Profile</p>
               <h1 className="mt-2 text-3xl font-extrabold">Hồ sơ người dùng</h1>
-              <p className="mt-2 max-w-2xl text-sm text-[#757575]">{buildProfileSubtitle(user)}</p>
+              <p className="mt-2 max-w-2xl text-sm text-[#757575]">
+                Giữ hồ sơ luôn chính xác để các tính năng theo dõi và tư vấn hoạt động ổn định hơn.
+              </p>
             </div>
 
             <div className="flex flex-wrap gap-3">
@@ -181,12 +181,6 @@ export default function ProfilePage() {
               >
                 Lịch sử thanh toán
               </Link>
-              <Link
-                href="/"
-                className="rounded-full border-2 border-[#FF9690] px-5 py-2 text-sm font-semibold text-[#FF9690] transition-colors hover:bg-[#FF9690]/10"
-              >
-                Về trang chủ
-              </Link>
             </div>
           </div>
 
@@ -194,10 +188,8 @@ export default function ProfilePage() {
             <div className="rounded-[32px] bg-white p-8 shadow-[0_18px_60px_rgba(62,39,35,0.08)]">
               <div className="animate-pulse space-y-4">
                 <div className="h-6 w-40 rounded-full bg-[#FFE1DE]" />
-                <div className="h-24 rounded-3xl bg-[#FFF2F0]" />
+                <div className="h-24 rounded-4xl bg-[#FFF2F0]" />
                 <div className="grid gap-4 md:grid-cols-2">
-                  <div className="h-14 rounded-2xl bg-[#FFF2F0]" />
-                  <div className="h-14 rounded-2xl bg-[#FFF2F0]" />
                   <div className="h-14 rounded-2xl bg-[#FFF2F0]" />
                   <div className="h-14 rounded-2xl bg-[#FFF2F0]" />
                 </div>
@@ -215,59 +207,101 @@ export default function ProfilePage() {
               </Link>
             </div>
           ) : (
-            <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+            <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
+              {/* Left Aside: Avatar + Subscription */}
               <motion.aside
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-[32px] bg-white p-6 shadow-[0_18px_60px_rgba(62,39,35,0.08)]"
+                className="space-y-4"
               >
-                <div className="bg-linear-to-br from-[#FFEBEE] via-white to-[#FFF3E0] rounded-[28px] p-5 text-center">
-                  <div className="mx-auto flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-[#FFD9D5] shadow-md">
-                    {avatarPreview ? (
-                      <img src={avatarPreview} alt={profileName} className="h-full w-full object-cover" />
-                    ) : (
-                      <span className="text-3xl font-extrabold text-[#FF7A74]">{profileName.charAt(0).toUpperCase()}</span>
+                {/* Avatar Card */}
+                <div className="rounded-[28px] bg-white p-6 shadow-[0_18px_60px_rgba(62,39,35,0.08)]">
+                  <div className="flex flex-col items-center text-center">
+                    {/* Avatar */}
+                    <div className="group relative">
+                      <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-[#FFE1DE] shadow-md">
+                        {avatarPreview ? (
+                          <img src={avatarPreview} alt={profileName} className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-[#FF9690] to-[#FF7A74]">
+                            <span className="text-2xl font-extrabold text-white">{profileName.charAt(0).toUpperCase()}</span>
+                          </div>
+                        )}
+                      </div>
+                      {/* Camera overlay on hover */}
+                      <label className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                        <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                          <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(event) => setAvatarFile(event.target.files?.[0] ?? null)}
+                          className="absolute inset-0 cursor-pointer opacity-0"
+                        />
+                      </label>
+                    </div>
+
+                    <h2 className="mt-4 text-xl font-extrabold">{profileName}</h2>
+                    <p className="mt-0.5 text-sm text-[#757575]">{user.email}</p>
+
+                    {avatarFile && (
+                      <p className="mt-2 text-xs text-[#FF9690]">Đã chọn: {avatarFile.name}</p>
                     )}
                   </div>
+                </div>
 
-                  <h2 className="mt-4 text-2xl font-extrabold">{profileName}</h2>
-                  <p className="mt-1 text-sm text-[#757575]">{user.email}</p>
-
-                  <div className="mt-5 grid grid-cols-2 gap-3 text-left">
-                    <div className="rounded-2xl bg-white px-4 py-3 shadow-sm">
-                      <div className="text-[11px] uppercase tracking-[0.16em] text-[#999]">Email</div>
-                      <div className="mt-1 text-sm font-semibold text-[#3E2723]">{user.isEmailVerified ? 'Đã xác minh' : 'Chưa xác minh'}</div>
+                {/* Subscription Card */}
+                <div className="rounded-[28px] bg-white p-5 shadow-[0_18px_60px_rgba(62,39,35,0.08)]">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF0ED]">
+                      <svg className="w-5 h-5 text-[#FF9690]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                      </svg>
                     </div>
-                    <div className="rounded-2xl bg-white px-4 py-3 shadow-sm">
-                      <div className="text-[11px] uppercase tracking-[0.16em] text-[#999]">SĐT</div>
-                      <div className="mt-1 text-sm font-semibold text-[#3E2723]">{user.isPhoneVerified ? 'Đã xác minh' : 'Chưa xác minh'}</div>
+                    <div>
+                      <div className="text-xs font-semibold uppercase tracking-[0.15em] text-[#999]">Gói Premium</div>
+                      <div className="text-sm font-bold text-[#3E2723]">
+                        {subscriptionStatus?.isPremium ? getPlanLabel(subscriptionStatus.plan) : 'Chưa kích hoạt'}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="mt-5 rounded-2xl bg-white px-4 py-4 text-left shadow-sm">
-                    <div className="text-[11px] uppercase tracking-[0.16em] text-[#999]">Gói hiện tại</div>
-                    <div className="mt-2 text-base font-bold text-[#3E2723]">
-                      {subscriptionStatus?.isPremium ? getPlanLabel(subscriptionStatus.plan) : 'Bạn chưa active gói Premium'}
+                  {subscriptionStatus?.isPremium ? (
+                    <div className="space-y-1.5 text-sm text-[#757575]">
+                      <div className="flex justify-between">
+                        <span>Hết hạn</span>
+                        <span className="font-semibold text-[#3E2723]">{formatDateVi(subscriptionStatus.endDate)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Còn lại</span>
+                        <span className="font-semibold text-[#3E2723]">{subscriptionStatus.daysRemaining} ngày</span>
+                      </div>
                     </div>
-                    <div className="mt-2 text-sm text-[#757575]">
-                      Hết hạn: {formatDateVi(subscriptionStatus?.endDate)}
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-xs text-[#757575]">Kích hoạt Premium để mở khóa tất cả tính năng.</p>
+                      <Link
+                        href="/app/subscription"
+                        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-[#FF9690] to-[#FF7A74] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:shadow-md"
+                      >
+                        Kích hoạt Premium
+                      </Link>
                     </div>
-                    <div className="mt-1 text-sm text-[#757575]">
-                      Còn lại: {subscriptionStatus?.daysRemaining != null ? `${subscriptionStatus.daysRemaining} ngày` : 'Chưa có dữ liệu'}
-                    </div>
-                  </div>
+                  )}
                 </div>
               </motion.aside>
 
+              {/* Right: Profile Form */}
               <motion.section
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 }}
-                className="rounded-[32px] bg-white p-6 shadow-[0_18px_60px_rgba(62,39,35,0.08)]"
+                className="rounded-[28px] bg-white p-6 shadow-[0_18px_60px_rgba(62,39,35,0.08)]"
               >
                 <div className="mb-6">
                   <h3 className="text-2xl font-extrabold">Thông tin cá nhân</h3>
-                  <p className="mt-2 text-sm text-[#757575]">Giữ hồ sơ luôn chính xác để các tính năng theo dõi và tư vấn hoạt động ổn định hơn.</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
@@ -284,22 +318,40 @@ export default function ProfilePage() {
                     </label>
 
                     <label className="block">
-                      <span className="mb-2 block text-sm font-semibold">Email</span>
+                      <span className="mb-2 block text-sm font-semibold">
+                        Email
+                        {user.isEmailVerified && (
+                          <span className="ml-2 text-xs font-normal text-[#22C55E]">✓ Đã xác thực</span>
+                        )}
+                      </span>
                       <input
                         value={user.email ?? ''}
                         disabled
-                        className="w-full cursor-not-allowed rounded-2xl border border-[#F2E2E0] bg-[#FAF5F4] px-4 py-3 text-sm text-[#999] outline-none"
+                        className="w-full cursor-not-allowed rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3 text-sm text-[#94A3B8] outline-none"
                       />
                     </label>
 
                     <label className="block">
-                      <span className="mb-2 block text-sm font-semibold">Số điện thoại</span>
-                      <input
-                        value={form.phone}
-                        onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))}
-                        className="w-full rounded-2xl border border-[#FFDED8] bg-[#FFF8F7] px-4 py-3 text-sm outline-none transition focus:border-[#FF9690] focus:bg-white"
-                        placeholder="Nhập số điện thoại"
-                      />
+                      <span className="mb-2 block text-sm font-semibold">
+                        Số điện thoại
+                        {user.isPhoneVerified && (
+                          <span className="ml-2 text-xs font-normal text-[#22C55E]">✓ Đã xác thực</span>
+                        )}
+                      </span>
+                      {user.isPhoneVerified ? (
+                        <input
+                          value={user.phone ?? ''}
+                          disabled
+                          className="w-full cursor-not-allowed rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3 text-sm text-[#94A3B8] outline-none"
+                        />
+                      ) : (
+                        <input
+                          value={form.phone}
+                          onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))}
+                          className="w-full rounded-2xl border border-[#FFDED8] bg-[#FFF8F7] px-4 py-3 text-sm outline-none transition focus:border-[#FF9690] focus:bg-white"
+                          placeholder="Nhập số điện thoại"
+                        />
+                      )}
                     </label>
 
                     <label className="block">
@@ -323,19 +375,6 @@ export default function ProfilePage() {
                         <option value="en">English</option>
                       </select>
                     </label>
-
-                    <label className="block md:col-span-2">
-                      <span className="mb-2 block text-sm font-semibold">Ảnh đại diện</span>
-                      <div className="rounded-[24px] border border-dashed border-[#FFB5B0] bg-linear-to-r from-[#FFF5F4] to-[#FFF9F0] p-4">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(event) => setAvatarFile(event.target.files?.[0] ?? null)}
-                          className="block w-full text-sm text-[#757575] file:mr-4 file:rounded-full file:border-0 file:bg-[#FF9690] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
-                        />
-                        <p className="mt-3 text-xs text-[#999]">Chấp nhận file ảnh để cập nhật avatar cho tài khoản.</p>
-                      </div>
-                    </label>
                   </div>
 
                   {feedback && (
@@ -350,14 +389,27 @@ export default function ProfilePage() {
                     </div>
                   )}
 
-                  <div className="flex flex-col gap-3 border-t border-[#F5E1DE] pt-5 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="text-sm text-[#757575]">Thông tin được đồng bộ với tài khoản đang đăng nhập.</p>
+                  <div className="flex justify-end border-t border-[#F5E1DE] pt-5">
                     <button
                       type="submit"
                       disabled={isSaving}
-                      className="inline-flex items-center justify-center rounded-full bg-linear-to-r from-[#FF9690] to-[#FF7A74] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-70"
+                      className="inline-flex items-center justify-center gap-2 rounded-full bg-linear-to-r from-[#FF9690] to-[#FF7A74] px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-70"
                     >
-                      {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
+                      {isSaving ? (
+                        <>
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                          Đang lưu...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                            <polyline points="17 21 17 13 7 13 7 21"/>
+                            <polyline points="7 3 7 8 15 8"/>
+                          </svg>
+                          Lưu thay đổi
+                        </>
+                      )}
                     </button>
                   </div>
                 </form>

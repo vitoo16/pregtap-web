@@ -384,16 +384,37 @@ function Header({
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            {['Tính năng', 'Gói Premium', 'Chuyên gia'].map((item) => (
-              <motion.a
-                key={item}
-                href={`#${item === 'Tính năng' ? 'features' : item === 'Gói Premium' ? 'premium' : 'experts'}`}
-                className="text-[#757575] hover:text-[#FF9690] font-medium transition-colors text-sm"
-                whileHover={{ y: -2 }}
-              >
-                {item}
-              </motion.a>
-            ))}
+            {authUser ? (
+              <>
+                <Link
+                  href="/app/home"
+                  className="text-[#757575] hover:text-[#FF9690] font-medium transition-colors text-sm"
+                >
+                  Trang chủ
+                </Link>
+                {['Tính năng', 'Gói Premium', 'Chuyên gia'].map((item) => (
+                  <motion.a
+                    key={item}
+                    href={`#${item === 'Tính năng' ? 'features' : item === 'Gói Premium' ? 'premium' : 'experts'}`}
+                    className="text-[#757575] hover:text-[#FF9690] font-medium transition-colors text-sm"
+                    whileHover={{ y: -2 }}
+                  >
+                    {item}
+                  </motion.a>
+                ))}
+              </>
+            ) : (
+              ['Tính năng', 'Gói Premium', 'Chuyên gia'].map((item) => (
+                <motion.a
+                  key={item}
+                  href={`#${item === 'Tính năng' ? 'features' : item === 'Gói Premium' ? 'premium' : 'experts'}`}
+                  className="text-[#757575] hover:text-[#FF9690] font-medium transition-colors text-sm"
+                  whileHover={{ y: -2 }}
+                >
+                  {item}
+                </motion.a>
+              ))
+            )}
           </div>
 
           {/* Desktop CTA */}
@@ -476,6 +497,11 @@ function Header({
                 <a href="#features" className="text-[#757575] font-medium py-2" onClick={() => setMobileMenuOpen(false)}>Tính năng</a>
                 <a href="#premium" className="text-[#757575] font-medium py-2" onClick={() => setMobileMenuOpen(false)}>Gói Premium</a>
                 <a href="#experts" className="text-[#757575] font-medium py-2" onClick={() => setMobileMenuOpen(false)}>Chuyên gia</a>
+                {authUser ? (
+                  <>
+                    <Link href="/app/home" className="text-[#757575] font-medium py-2" onClick={() => setMobileMenuOpen(false)}>Trang chủ</Link>
+                  </>
+                ) : null}
                 <div className="flex flex-col gap-3 pt-2">
                   {authUser ? (
                     <>

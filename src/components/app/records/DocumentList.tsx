@@ -22,7 +22,8 @@ interface DocumentListProps {
   onUploadClick: () => void;
 }
 
-function getTypeBadgeVariant(typeName: string): 'info' | 'success' | 'warning' | 'error' | 'default' {
+function getTypeBadgeVariant(typeName?: string): 'info' | 'success' | 'warning' | 'error' | 'default' {
+  if (!typeName) return 'default';
   const name = typeName.toLowerCase();
   if (name.includes('khám thai') || name.includes('prenatal')) return 'info';
   if (name.includes('siêu âm') || name.includes('ultrasound')) return 'success';
@@ -32,7 +33,8 @@ function getTypeBadgeVariant(typeName: string): 'info' | 'success' | 'warning' |
   return 'default';
 }
 
-function getTypeIcon(typeName: string): string {
+function getTypeIcon(typeName?: string): string {
+  if (!typeName) return '📋';
   const name = typeName.toLowerCase();
   if (name.includes('khám thai') || name.includes('prenatal')) return '👶';
   if (name.includes('siêu âm') || name.includes('ultrasound')) return '📷';
@@ -42,7 +44,8 @@ function getTypeIcon(typeName: string): string {
   return '📋';
 }
 
-function getTypeBgColor(typeName: string): string {
+function getTypeBgColor(typeName?: string): string {
+  if (!typeName) return 'bg-gray-50';
   const name = typeName.toLowerCase();
   if (name.includes('khám thai') || name.includes('prenatal')) return 'bg-[#E3F2FD]';
   if (name.includes('siêu âm') || name.includes('ultrasound')) return 'bg-[#E8F5E9]';

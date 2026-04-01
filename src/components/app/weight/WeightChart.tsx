@@ -32,12 +32,12 @@ export function WeightChart({ logs, goal, isLoading }: WeightChartProps) {
     if (!logs || logs.length < 2) return [];
 
     return [...logs]
-      .sort((a, b) => new Date(a.logDate).getTime() - new Date(b.logDate).getTime())
+      .sort((a, b) => new Date(a.loggedOn).getTime() - new Date(b.loggedOn).getTime())
       .map((log) => ({
-        date: log.logDate,
+        date: log.loggedOn,
         weight: log.weightKg,
-        displayDate: format(parseISO(log.logDate), 'dd/MM', { locale: vi }),
-        displayDateFull: format(parseISO(log.logDate), 'dd MMMM yyyy', { locale: vi }),
+        displayDate: format(parseISO(log.loggedOn), 'dd/MM', { locale: vi }),
+        displayDateFull: format(parseISO(log.loggedOn), 'dd MMMM yyyy', { locale: vi }),
       }));
   }, [logs]);
 

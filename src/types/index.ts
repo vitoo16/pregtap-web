@@ -91,7 +91,10 @@ export interface PregnancyWeek {
 export interface WeightLog {
   id: string;
   pregnancyId: string;
-  logDate: string;
+  /** BE field name: LoggedOn */
+  loggedOn: string;
+  /** Frontend alias for loggedOn — add computed property in components */
+  logDate?: string;
   weightKg: number;
   notes?: string;
   imageUrl?: string;
@@ -162,30 +165,39 @@ export type MealType =
 
 export interface MealItem {
   id: string;
-  title: string;
+  /** BE: itemName */
+  title?: string;
+  /** BE: itemName (alias) */
+  itemName?: string;
   mealType: MealType;
   imageUrl?: string;
   description?: string;
   ingredients?: string;
   instructions?: string;
   calories?: number;
-  nutrients: MealNutrient[];
+  nutrients?: MealNutrient[];
 }
 
 export interface FoodPreference {
   id: string;
   pregnancyId: string;
   preferenceType: 'Allergy' | 'Dislike';
-  refFoodItemId?: string;
-  refFoodItemName?: string;
+  /** BE returns: foodItemCode + foodItemDisplayName */
+  foodItemId: string;
+  foodItemCode: string;
+  foodItemDisplayName: string;
+  severity?: string;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface NutritionNote {
   id: string;
   pregnancyId: string;
   noteType: 'Diet' | 'Note' | 'Other';
-  title: string;
-  content: string;
+  /** BE field: ValueText */
+  valueText: string;
   createdAt?: string;
   updatedAt?: string;
 }

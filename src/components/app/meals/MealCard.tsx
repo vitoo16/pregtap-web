@@ -10,7 +10,7 @@ type MealCardProps = {
   compact?: boolean;
 };
 
-const MEAL_TYPE_LABELS: Record<MealType, string> = {
+const MEAL_TYPE_LABELS: Record<string, string> = {
   Breakfast: 'Bữa sáng',
   Lunch: 'Bữa trưa',
   Dinner: 'Bữa tối',
@@ -20,7 +20,7 @@ const MEAL_TYPE_LABELS: Record<MealType, string> = {
   Evening: 'Bữa tối',
 };
 
-const MEAL_TYPE_COLORS: Record<MealType, 'success' | 'error' | 'warning' | 'info' | 'default'> = {
+const MEAL_TYPE_COLORS: Record<string, 'success' | 'error' | 'warning' | 'info' | 'default'> = {
   Breakfast: 'warning',
   Lunch: 'success',
   Dinner: 'error',
@@ -31,7 +31,8 @@ const MEAL_TYPE_COLORS: Record<MealType, 'success' | 'error' | 'warning' | 'info
 };
 
 function getNutrient(meal: MealItem, code: string): number {
-  const found = meal.nutrients.find((n) => n.code.toUpperCase() === code.toUpperCase());
+  if (!meal.nutrients?.length) return 0;
+  const found = meal.nutrients.find((n) => n.code?.toUpperCase() === code.toUpperCase());
   return found?.value ?? 0;
 }
 
@@ -79,7 +80,7 @@ export function MealCard({ meal, compact = false }: MealCardProps) {
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2 mb-1">
             <h4 className="text-sm font-bold text-[#3E2723] leading-tight line-clamp-2">
-              {meal.title}
+              {meal.title ?? meal.itemName ?? 'N/A'}
             </h4>
             <Badge variant={MEAL_TYPE_COLORS[meal.mealType]}>
               {MEAL_TYPE_LABELS[meal.mealType]}
@@ -173,11 +174,11 @@ export function MealCard({ meal, compact = false }: MealCardProps) {
               )}
 
               {/* Full nutrients */}
-              {meal.nutrients.length > 0 && (
+              {meal.nutrients && meal.nutrients.length > 0 && (
                 <div>
                   <h5 className="text-xs font-bold uppercase text-[#999] mb-2">Giá trị dinh dưỡng</h5>
                   <div className="grid grid-cols-2 gap-2">
-                    {meal.nutrients.map((n) => (
+                    {meal.nutrients?.map((n) => (
                       <div
                         key={n.code}
                         className="flex items-center justify-between rounded-lg bg-[#F5F5F5] px-3 py-2"

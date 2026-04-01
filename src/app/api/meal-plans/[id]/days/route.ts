@@ -7,9 +7,5 @@ export async function GET(
 ) {
   const accessToken = getBearerToken(_request);
   const { id } = await params;
-  // BE uses /api/ocr/{id}/status for status polling
-  return proxyGet(`/ocr/${id}/status`, accessToken);
+  return proxyGet(`/meal-plans/${id}`, accessToken);
 }
-
-// POST to /api/ocr/[id] is no longer used - OCR is triggered via
-// POST /api/documents/{documentId}/ocr/process (handled in records/[id]/page.tsx)

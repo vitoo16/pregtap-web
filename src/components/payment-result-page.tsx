@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 
 import { type ApiResponse } from '@/lib/auth';
 import { getPlanLabel, type SubscriptionVerifyResponse } from '@/lib/subscription';
+import { getAccessToken } from '@/lib/token-store';
 
 export default function PaymentResultPage({
   status,
@@ -43,7 +44,10 @@ export default function PaymentResultPage({
       }
 
       try {
+        const token = getAccessToken();
         const response = await fetch(`/api/subscriptions/verify?orderCode=${encodeURIComponent(orderCode)}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          credentials: 'include',
           cache: 'no-store',
         });
 
