@@ -4,6 +4,7 @@ import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, addDays, parseISO, isValid } from 'date-fns';
+import { lastPeriodMin, lastPeriodMax, dueDateMin, dueDateMax } from '@/lib/helpers';
 
 import { usePregnancy } from '@/contexts/PregnancyContext';
 
@@ -59,10 +60,6 @@ function calcDueDateFromLMP(lmpDate: string): string {
   } catch {
     return '';
   }
-}
-
-function getToday(): string {
-  return format(new Date(), 'yyyy-MM-dd');
 }
 
 // ─── Section wrapper ──────────────────────────────────────────────────────────
@@ -409,7 +406,8 @@ export default function SetupPage() {
                 onChange={set('lastPeriodDate')}
                 placeholder="Chọn ngày"
                 required
-                max={getToday()}
+                min={lastPeriodMin()}
+                max={lastPeriodMax()}
                 error={errors.lastPeriodDate}
                 helpText="Tính tự động: ngày dự sinh = LMP + 280 ngày"
               />
@@ -423,7 +421,8 @@ export default function SetupPage() {
               onChange={set('dueDate')}
               placeholder="Chọn ngày"
               required
-              max={getToday()}
+              min={dueDateMin()}
+              max={dueDateMax()}
               error={errors.dueDate}
               helpText={
                 form.dueDateSource === 'LMP' && form.lastPeriodDate

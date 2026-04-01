@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 
 import { type ApiResponse, type AuthUser, type ProfileFormValues } from '@/lib/auth';
+import { dateOfBirthMin, dateOfBirthMax, validateDateOfBirth } from '@/lib/helpers';
 import { extractSubscriptionStatus, formatDateVi, getPlanLabel, type SubscriptionStatus } from '@/lib/subscription';
 import { getAccessToken } from '@/lib/token-store';
 
@@ -27,6 +28,7 @@ function mapUserToForm(user: AuthUser): ProfileFormValues {
 export default function ProfilePage() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [form, setForm] = useState<ProfileFormValues>(initialFormValues);
+  const [formErrors, setFormErrors] = useState<{ fullName?: string; dateOfBirth?: string }>({});
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -104,9 +106,24 @@ export default function ProfilePage() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsSaving(true);
     setFeedback(null);
 
+    // Validate
+    const errors: { fullName?: string; dateOfBirth?: string } = {};
+    if (!form.fullName.trim()) {
+      errors.fullName = 'Vui lòng nhập họ và tên';
+    }
+    if (form.dateOfBirth) {
+      const dobError = validateDateOfBirth(form.dateOfBirth);
+      if (dobError) errors.dateOfBirth = dobError;
+    }
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+    setFormErrors({});
+
+    setIsSaving(true);
     try {
       const payload = new FormData();
       payload.append('FullName', form.fullName.trim());
@@ -307,14 +324,17 @@ export default function ProfilePage() {
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="grid gap-5 md:grid-cols-2">
                     <label className="block">
-                      <span className="mb-2 block text-sm font-semibold">Họ và tên</span>
+                      <span className="mb-2 block text-sm font-semibold">Họ và tên <span className="text-[#FF7A74]">*</span></span>
                       <input
                         value={form.fullName}
-                        onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))}
-                        className="w-full rounded-2xl border border-[#FFDED8] bg-[#FFF8F7] px-4 py-3 text-sm outline-none transition focus:border-[#FF9690] focus:bg-white"
+                        onChange={(event) => {
+                          setForm((current) => ({ ...current, fullName: event.target.value }));
+                          if (formErrors.fullName) setFormErrors((prev) => ({ ...prev, fullName: undefined }));
+                        }}
+                        className={`w-full rounded-2xl border bg-[#FFF8F7] px-4 py-3 text-sm outline-none transition focus:border-[#FF9690] focus:bg-white ${formErrors.fullName ? 'border-[#C44545]' : 'border-[#FFDED8]'}`}
                         placeholder="Nhập họ và tên"
-                        required
                       />
+                      {formErrors.fullName && <p className="mt-1 text-xs text-[#C44545]">{formErrors.fullName}</p>}
                     </label>
 
                     <label className="block">
@@ -359,9 +379,15 @@ export default function ProfilePage() {
                       <input
                         type="date"
                         value={form.dateOfBirth}
-                        onChange={(event) => setForm((current) => ({ ...current, dateOfBirth: event.target.value }))}
-                        className="w-full rounded-2xl border border-[#FFDED8] bg-[#FFF8F7] px-4 py-3 text-sm outline-none transition focus:border-[#FF9690] focus:bg-white"
+                        onChange={(event) => {
+                          setForm((current) => ({ ...current, dateOfBirth: event.target.value }));
+                          if (formErrors.dateOfBirth) setFormErrors((prev) => ({ ...prev, dateOfBirth: undefined }));
+                        }}
+                        min={dateOfBirthMin()}
+                        max={dateOfBirthMax()}
+                        className={`w-full rounded-2xl border bg-[#FFF8F7] px-4 py-3 text-sm outline-none transition focus:border-[#FF9690] focus:bg-white ${formErrors.dateOfBirth ? 'border-[#C44545]' : 'border-[#FFDED8]'}`}
                       />
+                      {formErrors.dateOfBirth && <p className="mt-1 text-xs text-[#C44545]">{formErrors.dateOfBirth}</p>}
                     </label>
 
                     <label className="block md:col-span-2">

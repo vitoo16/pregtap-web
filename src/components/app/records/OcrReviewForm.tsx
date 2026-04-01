@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { apiClient } from '@/lib/api-client';
+import { dateOfBirthMin, dateOfBirthMax, pastDateMax, lastPeriodMin, lastPeriodMax, dueDateMin, dueDateMax } from '@/lib/helpers';
 import { type ExtractionReview, type VitalsData, type ApiResponse } from '@/types';
 import { LoadingSpinner } from '@/components/app/shared/LoadingSpinner';
 import { ErrorState } from '@/components/app/shared/ErrorState';
@@ -179,9 +180,11 @@ interface FieldProps {
   type?: string;
   hint?: string;
   required?: boolean;
+  min?: string;
+  max?: string;
 }
 
-function EditField({ label, value, onChange, placeholder, type = 'text', hint, required }: FieldProps) {
+function EditField({ label, value, onChange, placeholder, type = 'text', hint, required, min, max }: FieldProps) {
   return (
     <div>
       <label className="mb-1.5 block text-xs font-semibold text-[#757575]">
@@ -193,6 +196,8 @@ function EditField({ label, value, onChange, placeholder, type = 'text', hint, r
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder || `Nhập ${label.toLowerCase()}`}
+        min={min}
+        max={max}
         className="w-full rounded-xl border-2 border-gray-100 bg-white px-4 py-2.5 text-sm text-[#3E2723] placeholder-[#ccc] transition-colors focus:border-[#FF9690] focus:outline-none"
       />
       {hint && <p className="mt-1 text-xs text-[#999]">{hint}</p>}
@@ -622,7 +627,7 @@ export function OcrReviewForm({ ocrResultId, documentId, onSuccess }: OcrReviewF
       <FormSection title="Thông tin bệnh nhân" icon="👤" index={sectionIndex++}>
         <EditField label="Họ và tên" value={fields.fullName} onChange={(v) => updateField('fullName', v)} />
         <RowFields>
-          <EditField label="Ngày sinh" value={fields.dateOfBirth} onChange={(v) => updateField('dateOfBirth', v)} type="date" />
+          <EditField label="Ngày sinh" value={fields.dateOfBirth} onChange={(v) => updateField('dateOfBirth', v)} type="date" min={dateOfBirthMin()} max={dateOfBirthMax()} />
           <EditField label="Tuổi" value={fields.age} onChange={(v) => updateField('age', v)} type="number" placeholder="VD: 28" />
         </RowFields>
         <RowFields>
@@ -650,13 +655,13 @@ export function OcrReviewForm({ ocrResultId, documentId, onSuccess }: OcrReviewF
           <EditField label="Nơi khám" value={fields.facility} onChange={(v) => updateField('facility', v)} />
           <EditField label="Lần mang thai thứ" value={fields.pregnancyNumber} onChange={(v) => updateField('pregnancyNumber', v)} type="number" />
         </RowFields>
-        <EditField label="Ngày khám" value={fields.eventDate} onChange={(v) => updateField('eventDate', v)} type="date" />
+        <EditField label="Ngày khám" value={fields.eventDate} onChange={(v) => updateField('eventDate', v)} type="date" max={pastDateMax()} />
         <EditField label="Lý do khám" value={fields.reasonForVisit} onChange={(v) => updateField('reasonForVisit', v)} />
         <RowFields>
           <EditField label="Tuần thai" value={fields.gestationalWeek} onChange={(v) => updateField('gestationalWeek', v)} type="number" placeholder="VD: 28" />
-          <EditField label="Ngày kinh cuối" value={fields.lastMenstrualPeriod} onChange={(v) => updateField('lastMenstrualPeriod', v)} type="date" />
+          <EditField label="Ngày kinh cuối" value={fields.lastMenstrualPeriod} onChange={(v) => updateField('lastMenstrualPeriod', v)} type="date" min={lastPeriodMin()} max={lastPeriodMax()} />
         </RowFields>
-        <EditField label="Ngày dự sinh" value={fields.expectedDeliveryDate} onChange={(v) => updateField('expectedDeliveryDate', v)} type="date" />
+        <EditField label="Ngày dự sinh" value={fields.expectedDeliveryDate} onChange={(v) => updateField('expectedDeliveryDate', v)} type="date" min={dueDateMin()} max={dueDateMax()} />
         <EditField label="Tiến triển thai nghén" value={fields.clinicalProgress} onChange={(v) => updateField('clinicalProgress', v)} />
         <EditField label="Tình trạng chung" value={fields.generalCondition} onChange={(v) => updateField('generalCondition', v)} />
       </FormSection>
@@ -712,7 +717,7 @@ export function OcrReviewForm({ ocrResultId, documentId, onSuccess }: OcrReviewF
       {/* Section: Tai kham */}
       <FormSection title="Tái khám" icon="📅" index={sectionIndex++}>
         <RowFields>
-          <EditField label="Ngày hẹn tái khám" value={fields.nextAppointmentDate} onChange={(v) => updateField('nextAppointmentDate', v)} type="date" />
+          <EditField label="Ngày hẹn tái khám" value={fields.nextAppointmentDate} onChange={(v) => updateField('nextAppointmentDate', v)} type="date" min={dueDateMin()} max={dueDateMax()} />
           <EditField label="Ghi chú tái khám" value={fields.nextAppointmentNotes} onChange={(v) => updateField('nextAppointmentNotes', v)} />
         </RowFields>
       </FormSection>
