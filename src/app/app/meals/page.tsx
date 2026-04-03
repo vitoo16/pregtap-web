@@ -32,12 +32,22 @@ import { MealCard } from '@/components/app/meals/MealCard';
 
 // ─── API helpers ───────────────────────────────────────────────────────────────
 
+type MealPlanDaySummary = {
+  planDate: string;
+  totalCalories: number;
+  mealCount: number;
+};
+
+type MealPlanDetail = MealPlan & {
+  days?: MealPlanDaySummary[];
+};
+
 async function fetchMealPlans(pregnancyId: string): Promise<ApiResponse<MealPlan[]>> {
   return apiClient.get<MealPlan[]>(`/api/meal-plans`, { pregnancyId });
 }
 
-async function fetchMealPlanDetail(planId: string): Promise<ApiResponse<MealPlan>> {
-  return apiClient.get<MealPlan>(`/api/meal-plans/${planId}`);
+async function fetchMealPlanDetail(planId: string): Promise<ApiResponse<MealPlanDetail>> {
+  return apiClient.get<MealPlanDetail>(`/api/meal-plans/${planId}`);
 }
 
 async function fetchMealPlanDay(planId: string, date: string): Promise<ApiResponse<MealDay>> {
@@ -139,7 +149,7 @@ export default function MealsPage() {
 
   // Build date -> plan days map (for calendar dots)
   const mealDatesMap = new Map<string, { calories: number; mealCount: number }>();
-  planDays.forEach((day: { planDate: string; totalCalories: number; mealCount: number }) => {
+  planDays.forEach((day: MealPlanDaySummary) => {
     mealDatesMap.set(day.planDate, { calories: day.totalCalories, mealCount: day.mealCount });
   });
 

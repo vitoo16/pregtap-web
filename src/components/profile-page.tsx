@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 import { type ApiResponse, type AuthUser, type ProfileFormValues } from '@/lib/auth';
 import { dateOfBirthMin, dateOfBirthMax, validateDateOfBirth } from '@/lib/helpers';
@@ -26,6 +27,7 @@ function mapUserToForm(user: AuthUser): ProfileFormValues {
 }
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [form, setForm] = useState<ProfileFormValues>(initialFormValues);
   const [formErrors, setFormErrors] = useState<{ fullName?: string; dateOfBirth?: string }>({});
@@ -103,6 +105,14 @@ export default function ProfilePage() {
   const profileName = useMemo(() => {
     return user?.fullName?.trim() || user?.email?.trim() || 'Mẹ bầu PregTap';
   }, [user]);
+
+  function handleBackToApp() {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+      return;
+    }
+    router.push('/app/home');
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -192,6 +202,19 @@ export default function ProfilePage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={handleBackToApp}
+                className="rounded-full border-2 border-[#FFD5CC] px-5 py-2 text-sm font-semibold text-[#8A4E46] transition-colors hover:bg-[#FFF4F1]"
+              >
+                Quay lại ứng dụng
+              </button>
+              <Link
+                href="/"
+                className="rounded-full border-2 border-[#FFE1DE] px-5 py-2 text-sm font-semibold text-[#B5655C] transition-colors hover:bg-[#FFF8F7]"
+              >
+                Trang chủ
+              </Link>
               <Link
                 href="/payment/history"
                 className="rounded-full border-2 border-[#F9B5A7] px-5 py-2 text-sm font-semibold text-[#B5655C] transition-colors hover:bg-[#FFF0ED]"

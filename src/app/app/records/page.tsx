@@ -63,7 +63,7 @@ async function uploadDocument(pregnancyId: string, data: UploadData): Promise<Me
   }
 
   const result = await response.json() as ApiResponse<MedicalDocument>;
-  if (!result.success) {
+  if (!result.success || !result.data) {
     throw new Error(result.message ?? 'Upload failed');
   }
   return result.data;

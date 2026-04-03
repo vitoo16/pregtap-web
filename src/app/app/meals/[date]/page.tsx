@@ -99,7 +99,7 @@ export default function MealDayPage({
   // Compute nutrient totals
   const nutrientTotals = meals.reduce(
     (totals, meal) => {
-      meal.nutrients.forEach((n) => {
+      (meal.nutrients ?? []).forEach((n) => {
         totals[n.code] = (totals[n.code] ?? 0) + n.value;
       });
       totals['CAL'] = (totals['CAL'] ?? 0) + (meal.calories ?? 0);
