@@ -375,7 +375,7 @@ export default function SetupPage() {
             </div>
           </div>
           <h1 className="mb-1 text-2xl font-extrabold tracking-tight">
-            Chao mui~n ba^n den vo^i PregTap!
+            Chào mừng bạn đến với PregTap!
           </h1>
           <p className="text-sm font-medium opacity-90">
             Hãy cùng nhập thông tin thai kỳ của bạn để bắt đầu hành trình tuyệt vời này nhé
