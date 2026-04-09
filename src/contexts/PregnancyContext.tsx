@@ -156,7 +156,9 @@ export function PregnancyProvider({ children }: PregnancyProviderProps) {
 
       const payload = await apiClient.get<ActivePregnancy>('/api/pregnancies/active');
 
-      if (payload.success && payload.data && payload.data.id) {
+      // Some BE responses can return inconsistent success flags even when data is valid.
+      // Treat a payload containing a pregnancy id as successful.
+      if (payload.data && payload.data.id) {
         setPregnancy(payload.data);
         if (payload.data.expectedDeliveryDate) {
           setProgress(computeProgress(payload.data.expectedDeliveryDate));
@@ -192,7 +194,7 @@ export function PregnancyProvider({ children }: PregnancyProviderProps) {
 
   const createPregnancy = useCallback(async (data: CreatePregnancyData) => {
     const payload = await apiClient.post<ActivePregnancy>('/api/pregnancies', data);
-    if (!payload.success || !payload.data) {
+    if (!payload.data || !payload.data.id) {
       throw new Error(payload.errors?.join(' ') ?? payload.message ?? 'Không thể tạo thai kỳ.');
     }
     setPregnancy(payload.data);
@@ -203,7 +205,7 @@ export function PregnancyProvider({ children }: PregnancyProviderProps) {
 
   const updatePregnancy = useCallback(async (id: string, data: UpdatePregnancyData) => {
     const payload = await apiClient.put<ActivePregnancy>(`/api/pregnancies/${id}`, data);
-    if (!payload.success || !payload.data) {
+    if (!payload.data || !payload.data.id) {
       throw new Error(payload.errors?.join(' ') ?? payload.message ?? 'Không thể cập nhật thai kỳ.');
     }
     setPregnancy(payload.data);
