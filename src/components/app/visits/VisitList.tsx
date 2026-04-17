@@ -64,7 +64,7 @@ function VisitCard({
   const dayNum = format(dateObj, 'd');
   const monthAbbr = MONTH_ABBR[dateObj.getMonth()] ?? '';
   const yearNum = format(dateObj, 'yyyy');
-  const fullDate = format(dateObj, "EEEE, dd 'tháng' M năm yyyy", { locale: vi });
+  const fullDate = format(dateObj, "EEEE, dd 'tháng' M 'năm' yyyy", { locale: vi });
 
   return (
     <motion.div
