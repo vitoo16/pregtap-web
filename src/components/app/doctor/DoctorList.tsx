@@ -4,12 +4,23 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { format, parseISO } from 'date-fns';
-import { vi } from 'date-fns/locale';
 import { apiClient } from '@/lib/api-client';
 import { type Doctor, type Conversation, type ApiResponse } from '@/types';
-import { Badge } from '@/components/app/shared/Badge';
 
-type DoctorItem = Doctor & { specialty?: string };
+type DoctorItem = Omit<Doctor, 'specialty'> & { specialty?: string };
+type RawChatPartner = {
+  id?: string;
+  fullName?: string | null;
+  name?: string | null;
+  avatarUrl?: string | null;
+  specialty?: string | null;
+  lastMessage?: string | null;
+  unreadCount?: number | null;
+  otherUserId?: string;
+  otherUserName?: string | null;
+  otherUserAvatar?: string | null;
+  lastMessageAt?: string | null;
+};
 
 async function fetchDoctors(): Promise<ApiResponse<DoctorItem[]>> {
   return apiClient.get<DoctorItem[]>('/api/chat/doctors');
@@ -19,12 +30,47 @@ async function fetchConversations(): Promise<ApiResponse<Conversation[]>> {
   return apiClient.get<Conversation[]>('/api/chat/conversations');
 }
 
-function DoctorAvatar({ avatarUrl, name }: { avatarUrl?: string; name: string }) {
-  const initial = name.charAt(0).toUpperCase();
+function normalizeDoctor(item: RawChatPartner): DoctorItem | null {
+  const id = item.id ?? item.otherUserId;
+  if (!id) return null;
+
+  return {
+    id,
+    name: item.name ?? item.fullName ?? item.otherUserName ?? 'Bác sĩ',
+    specialty: item.specialty ?? undefined,
+    avatarUrl: item.avatarUrl ?? item.otherUserAvatar ?? undefined,
+    lastMessage: item.lastMessage ?? undefined,
+    unreadCount: item.unreadCount ?? undefined,
+  };
+}
+
+function normalizeConversation(item: RawChatPartner): Conversation | null {
+  const otherUserId = item.otherUserId ?? item.id;
+  if (!otherUserId) return null;
+
+  return {
+    id: item.id ?? otherUserId,
+    otherUserId,
+    otherUserName: item.otherUserName ?? item.fullName ?? item.name ?? 'Người dùng',
+    otherUserAvatar: item.otherUserAvatar ?? item.avatarUrl ?? undefined,
+    lastMessage: item.lastMessage ?? undefined,
+    lastMessageAt: item.lastMessageAt ?? undefined,
+    unreadCount: item.unreadCount ?? 0,
+  };
+}
+
+function getSafeDisplayName(name: string | null | undefined, fallback = 'Bác sĩ'): string {
+  const normalized = name?.trim();
+  return normalized && normalized.length > 0 ? normalized : fallback;
+}
+
+function DoctorAvatar({ avatarUrl, name }: { avatarUrl?: string; name?: string | null }) {
+  const displayName = getSafeDisplayName(name);
+  const initial = displayName.charAt(0).toUpperCase();
   return (
-    <div className="relative flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#FF9690] to-[#FFC0C0] text-sm font-bold text-white shadow-sm">
+    <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-[#FF9690] to-[#FFC0C0] text-sm font-bold text-white shadow-sm">
       {avatarUrl ? (
-        <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
+        <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
       ) : (
         initial
       )}
@@ -33,6 +79,7 @@ function DoctorAvatar({ avatarUrl, name }: { avatarUrl?: string; name: string })
 }
 
 function DoctorCard({ doctor, index }: { doctor: DoctorItem; index: number }) {
+  const doctorName = getSafeDisplayName(doctor.name);
   const lastMsgTime = doctor.lastMessage
     ? format(new Date(), 'HH:mm')
     : null;
@@ -47,12 +94,12 @@ function DoctorCard({ doctor, index }: { doctor: DoctorItem; index: number }) {
         href={`/app/doctor/${doctor.id}`}
         className="card flex items-center gap-3 p-4 transition-all hover:shadow-md active:scale-[0.99]"
       >
-        <DoctorAvatar avatarUrl={doctor.avatarUrl} name={doctor.name} />
+        <DoctorAvatar avatarUrl={doctor.avatarUrl} name={doctorName} />
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <h3 className="truncate text-sm font-bold text-[#3E2723]">
-              {doctor.name}
+              {doctorName}
             </h3>
             {doctor.unreadCount && doctor.unreadCount > 0 && (
               <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#FF9690] px-1.5 text-[10px] font-bold text-white">
@@ -75,7 +122,7 @@ function DoctorCard({ doctor, index }: { doctor: DoctorItem; index: number }) {
         </div>
 
         {lastMsgTime && (
-          <span className="flex-shrink-0 text-[10px] text-[#999]">
+          <span className="shrink-0 text-[10px] text-[#999]">
             {lastMsgTime}
           </span>
         )}
@@ -85,6 +132,7 @@ function DoctorCard({ doctor, index }: { doctor: DoctorItem; index: number }) {
 }
 
 function ConversationCard({ conv, index }: { conv: Conversation; index: number }) {
+  const participantName = getSafeDisplayName(conv.otherUserName, 'Người dùng');
   const lastMsgTime = conv.lastMessageAt
     ? (() => {
         try {
@@ -106,12 +154,12 @@ function ConversationCard({ conv, index }: { conv: Conversation; index: number }
         href={`/app/doctor/${conv.otherUserId}`}
         className="card flex items-center gap-3 p-4 transition-all hover:shadow-md active:scale-[0.99]"
       >
-        <DoctorAvatar avatarUrl={conv.otherUserAvatar} name={conv.otherUserName} />
+        <DoctorAvatar avatarUrl={conv.otherUserAvatar} name={participantName} />
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <h3 className="truncate text-sm font-bold text-[#3E2723]">
-              {conv.otherUserName}
+              {participantName}
             </h3>
             {conv.unreadCount > 0 && (
               <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#FF9690] px-1.5 text-[10px] font-bold text-white">
@@ -128,7 +176,7 @@ function ConversationCard({ conv, index }: { conv: Conversation; index: number }
         </div>
 
         {lastMsgTime && (
-          <span className="flex-shrink-0 text-[10px] text-[#999]">
+          <span className="shrink-0 text-[10px] text-[#999]">
             {lastMsgTime}
           </span>
         )}
@@ -162,8 +210,17 @@ export function DoctorList({ showConversationsOnly = false }: DoctorListProps) {
     retry: 1,
   });
 
-  const doctors = doctorsData?.success ? doctorsData.data ?? [] : [];
-  const conversations = conversationsData?.success ? conversationsData.data ?? [] : [];
+  const doctors = doctorsData?.success
+    ? ((doctorsData.data as unknown as RawChatPartner[] | undefined) ?? [])
+        .map(normalizeDoctor)
+        .filter((item): item is DoctorItem => Boolean(item))
+    : [];
+
+  const conversations = conversationsData?.success
+    ? ((conversationsData.data as unknown as RawChatPartner[] | undefined) ?? [])
+        .map(normalizeConversation)
+        .filter((item): item is Conversation => Boolean(item))
+    : [];
 
   const isLoading = doctorsLoading || conversationsLoading;
   const error = doctorsError || conversationsError;

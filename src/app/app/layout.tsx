@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { PregnancyProvider } from '@/contexts/PregnancyContext';
@@ -9,7 +9,7 @@ import { ReactQueryProvider } from '@/components/providers/ReactQueryProvider';
 import { Sidebar } from '@/components/app/Sidebar';
 
 function MobileBottomTabs() {
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const pathname = usePathname();
 
   const tabs = [
     { href: '/app/home', label: 'Trang chủ', icon: (

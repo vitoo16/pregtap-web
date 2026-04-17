@@ -3,7 +3,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
 import { useChat } from '@/hooks/useChat';
 import { MessageBubble } from './MessageBubble';
 import { ChatInput } from './ChatInput';
@@ -20,7 +19,7 @@ type ChatRoomProps = {
 function TypingIndicator() {
   return (
     <div className="flex items-center gap-2 px-4 py-2">
-      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#FFCCBC] text-[#E64A19]">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFCCBC] text-[#E64A19]">
         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
           <circle cx="12" cy="7" r="4" />
@@ -155,7 +154,8 @@ export function ChatRoom({
     [deleteMessage],
   );
 
-  const initial = otherUserName.charAt(0).toUpperCase();
+  const displayName = otherUserName?.trim() || 'Bác sĩ';
+  const initial = displayName.charAt(0).toUpperCase();
 
   return (
     <div className="flex h-full flex-col bg-white">
@@ -166,7 +166,7 @@ export function ChatRoom({
       >
         <button
           onClick={() => router.back()}
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
           aria-label="Quay lại"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -175,9 +175,9 @@ export function ChatRoom({
         </button>
 
         {/* Avatar */}
-        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/30 text-sm font-bold text-white">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/30 text-sm font-bold text-white">
           {otherUserAvatar ? (
-            <img src={otherUserAvatar} alt={otherUserName} className="h-full w-full object-cover" />
+            <img src={otherUserAvatar} alt={displayName} className="h-full w-full object-cover" />
           ) : (
             initial
           )}
@@ -185,7 +185,7 @@ export function ChatRoom({
 
         {/* Info */}
         <div className="min-w-0 flex-1">
-          <h2 className="truncate text-base font-bold text-white">{otherUserName}</h2>
+          <h2 className="truncate text-base font-bold text-white">{displayName}</h2>
           {otherUserSpecialty && (
             <p className="truncate text-xs text-white/80">{otherUserSpecialty}</p>
           )}
@@ -217,7 +217,7 @@ export function ChatRoom({
       {/* Messages area */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-y-auto py-4"
+        className="flex-1 overflow-y-auto p-4"
         style={{ scrollBehavior: 'smooth' }}
       >
         {isLoading ? (
@@ -236,7 +236,7 @@ export function ChatRoom({
             </div>
             <h3 className="text-base font-bold text-[#3E2723]">Bắt đầu cuộc trò chuyện</h3>
             <p className="mt-2 text-sm text-[#757575] max-w-xs">
-              Gửi tin nhắn cho {otherUserName} để được tư vấn về sức khỏe thai kỳ.
+              Gửi tin nhắn cho {displayName} để được tư vấn về sức khỏe thai kỳ.
             </p>
           </div>
         ) : (

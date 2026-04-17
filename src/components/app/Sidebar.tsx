@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 
 import { useAuth } from '@/contexts/AuthContext';
+import { hasAdminAccess } from '@/lib/admin-access';
 
 type NavItem = {
   label: string;
@@ -137,6 +138,10 @@ export function Sidebar() {
   const { user, logout } = useAuth();
   const displayName = getDisplayName(user);
   const userInitial = getUserInitial(user);
+  const canAccessAdmin = hasAdminAccess();
+  const navItems = canAccessAdmin
+    ? NAV_ITEMS
+    : NAV_ITEMS.filter((item) => item.href !== '/app/admin');
 
   return (
     <aside className="app-sidebar">
@@ -159,7 +164,7 @@ export function Sidebar() {
         <div className="mb-1 px-3">
           <span className="text-[10px] font-bold uppercase tracking-widest text-[#999] px-3">Menu</span>
         </div>
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
           return (
             <Link
@@ -167,7 +172,7 @@ export function Sidebar() {
               href={item.href}
               className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
             >
-              <span className="flex-shrink-0">{item.icon}</span>
+              <span className="shrink-0">{item.icon}</span>
               <span>{item.label}</span>
               {isActive && (
                 <motion.div
@@ -186,7 +191,7 @@ export function Sidebar() {
           href="/profile"
           className="flex items-center gap-3 rounded-xl p-2 mb-1 hover:bg-[#FDEEEE] transition-colors"
         >
-          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-[#FF9690] to-[#FFC0C0] text-xs font-extrabold text-white shadow-sm">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-[#FF9690] to-[#FFC0C0] text-xs font-extrabold text-white shadow-sm">
             {user?.avatarUrl ? (
               <img src={user.avatarUrl} alt={displayName} className="h-full w-full object-cover" />
             ) : (
@@ -203,7 +208,7 @@ export function Sidebar() {
           onClick={() => void logout()}
           className="flex w-full items-center gap-3 rounded-xl p-2 text-sm font-semibold text-[#999] hover:bg-[#FDEEEE] hover:text-[#FF9690] transition-colors"
         >
-          <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
             <polyline points="16 17 21 12 16 7"/>
             <line x1="21" y1="12" x2="9" y2="12"/>

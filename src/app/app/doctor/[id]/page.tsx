@@ -13,6 +13,29 @@ type DoctorInfo = {
   avatarUrl?: string;
 };
 
+type RawChatPartner = {
+  id?: string;
+  fullName?: string | null;
+  name?: string | null;
+  avatarUrl?: string | null;
+  specialty?: string | null;
+  otherUserId?: string;
+  otherUserName?: string | null;
+  otherUserAvatar?: string | null;
+};
+
+function toDoctorInfo(item: RawChatPartner): DoctorInfo | null {
+  const id = item.otherUserId ?? item.id;
+  if (!id) return null;
+
+  return {
+    id,
+    name: item.otherUserName ?? item.fullName ?? item.name ?? 'Người dùng',
+    specialty: item.specialty ?? undefined,
+    avatarUrl: item.otherUserAvatar ?? item.avatarUrl ?? undefined,
+  };
+}
+
 export default function ChatPage() {
   const params = useParams();
   const otherUserId = params.id as string;
@@ -26,31 +49,28 @@ export default function ChatPage() {
       setLoading(true);
       try {
         // Try to get doctor info from conversations first
-        const convRes = await apiClient.get<Array<{ otherUserId: string; otherUserName: string; otherUserAvatar?: string }>>('/api/chat/conversations');
+        const convRes = await apiClient.get<RawChatPartner[]>('/api/chat/conversations');
         if (convRes.success && convRes.data) {
-          const conv = convRes.data.find((c) => c.otherUserId === otherUserId);
+          const conv = convRes.data
+            .map(toDoctorInfo)
+            .find((item): item is DoctorInfo => item !== null && item.id === otherUserId);
+
           if (conv) {
-            setDoctor({
-              id: conv.otherUserId,
-              name: conv.otherUserName,
-              avatarUrl: conv.otherUserAvatar,
-            });
+            setDoctor(conv);
             setLoading(false);
             return;
           }
         }
 
         // Fallback: try to get from doctors list
-        const doctorRes = await apiClient.get<Doctor[]>('/api/chat/doctors');
+        const doctorRes = await apiClient.get<RawChatPartner[]>('/api/chat/doctors');
         if (doctorRes.success && doctorRes.data) {
-          const doc = doctorRes.data.find((d) => d.id === otherUserId);
+          const doc = doctorRes.data
+            .map(toDoctorInfo)
+            .find((item): item is DoctorInfo => item !== null && item.id === otherUserId);
+
           if (doc) {
-            setDoctor({
-              id: doc.id,
-              name: doc.name,
-              specialty: doc.specialty,
-              avatarUrl: doc.avatarUrl,
-            });
+            setDoctor(doc);
             setLoading(false);
             return;
           }

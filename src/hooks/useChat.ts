@@ -4,17 +4,15 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import * as signalR from '@microsoft/signalr';
 import { type ChatMessage, type ApiResponse } from '@/types';
 import { apiClient } from '@/lib/api-client';
-import { ACCESS_COOKIE_NAME } from '@/lib/auth';
+import { getAccessToken as getStoredAccessToken } from '@/lib/token-store';
 
 const SIGNALR_HUB_URL = 'http://cinezone.info:24466/hubs/chat';
 const POLL_INTERVAL_MS = 10_000;
 const MAX_RECONNECT_DELAY_MS = 30_000;
 const BASE_RECONNECT_DELAY_MS = 1_000;
 
-function getAccessToken(): string | null {
-  if (typeof document === 'undefined') return null;
-  const match = document.cookie.match(new RegExp(`(^| )${ACCESS_COOKIE_NAME}=([^;]+)`));
-  return match ? decodeURIComponent(match[2]) : null;
+function getAuthToken(): string | null {
+  return getStoredAccessToken();
 }
 
 function parseJwt(token: string): Record<string, string> {
@@ -34,7 +32,7 @@ function parseJwt(token: string): Record<string, string> {
 }
 
 function getUserIdFromToken(): string | null {
-  const token = getAccessToken();
+  const token = getAuthToken();
   if (!token) return null;
   const payload = parseJwt(token);
   return (
@@ -95,7 +93,13 @@ export function useChat({ otherUserId, onMessageReceived, onMessageEdited, onMes
             (senderId === otherId && receiverId === currentUserId.toLowerCase())
           );
         });
-        setMessages(filtered);
+        // BE history does not include isMe; compute it here to keep bubble ownership correct after reload.
+        const normalized = filtered.map((msg) => ({
+          ...msg,
+          isMe: (msg.senderUserId ?? '').toLowerCase() === currentUserId.toLowerCase(),
+          messageType: msg.messageType ?? (msg.attachmentFile ? 'Image' : 'Text'),
+        }));
+        setMessages(normalized);
       }
     } catch (err) {
       console.error('useChat: Failed to fetch history', err);
@@ -179,7 +183,7 @@ export function useChat({ otherUserId, onMessageReceived, onMessageEdited, onMes
 
   // ── Start SignalR connection ──────────────────────────────────────────────
   const startConnection = useCallback(async () => {
-    const token = getAccessToken();
+    const token = getAuthToken();
     if (!token) {
       setError('Không có phiên đăng nhập');
       return;
@@ -200,7 +204,9 @@ export function useChat({ otherUserId, onMessageReceived, onMessageEdited, onMes
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(SIGNALR_HUB_URL, {
         accessTokenFactory: () => Promise.resolve(token),
-        withCredentials: true,
+        // Use Bearer token auth only; do not send cookies cross-origin.
+        // This avoids browser CORS rejection when BE returns ACAO="*".
+        withCredentials: false,
       } as signalR.IHttpConnectionOptions)
       .withAutomaticReconnect()
       .build();
@@ -208,9 +214,8 @@ export function useChat({ otherUserId, onMessageReceived, onMessageEdited, onMes
     connectionRef.current = connection;
 
     // Register event handlers
-    connection.on('ReceiveMessage', (args: unknown[]) => {
-      if (!args || args.length === 0) return;
-      const data = normalizePayload(args[0]);
+    connection.on('ReceiveMessage', (raw: unknown) => {
+      const data = normalizePayload(raw);
       if (!data) return;
 
       const currentUserId = currentUserIdRef.current;
@@ -234,9 +239,8 @@ export function useChat({ otherUserId, onMessageReceived, onMessageEdited, onMes
       onMessageReceived?.(message);
     });
 
-    connection.on('MessageEdited', (args: unknown[]) => {
-      if (!args || args.length === 0) return;
-      const data = normalizePayload(args[0]);
+    connection.on('MessageEdited', (raw: unknown) => {
+      const data = normalizePayload(raw);
       if (!data) return;
       const currentUserId = currentUserIdRef.current;
       const message = toChatMessage(data, currentUserId);
@@ -244,9 +248,8 @@ export function useChat({ otherUserId, onMessageReceived, onMessageEdited, onMes
       onMessageEdited?.(message);
     });
 
-    connection.on('MessageDeleted', (args: unknown[]) => {
-      if (!args || args.length === 0) return;
-      const data = normalizePayload(args[0]);
+    connection.on('MessageDeleted', (raw: unknown) => {
+      const data = normalizePayload(raw);
       if (!data) return;
       const msgId = (data['id'] as string) ?? '';
       setMessages((prev) => prev.filter((m) => m.id !== msgId));
@@ -360,7 +363,7 @@ export function useChat({ otherUserId, onMessageReceived, onMessageEdited, onMes
           formData.append('attachment', attachmentFile);
         }
 
-        const token = getAccessToken();
+        const token = getAuthToken();
         const res = await fetch('/api/chat/send', {
           method: 'POST',
           headers: token ? { Authorization: `Bearer ${token}` } : {},

@@ -24,8 +24,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi">
-      <body className={`${nunito.variable} antialiased`}>
+    <html lang="vi" data-scroll-behavior="smooth">
+      <body suppressHydrationWarning className={`${nunito.variable} antialiased`}>
         {children}
         <Analytics />
       </body>

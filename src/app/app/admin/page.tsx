@@ -8,6 +8,8 @@ import { vi } from 'date-fns/locale';
 
 import { type ApiResponse } from '@/lib/auth';
 import { getAccessToken } from '@/lib/token-store';
+import { useAuth } from '@/contexts/AuthContext';
+import { hasAdminAccess } from '@/lib/admin-access';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -213,6 +215,8 @@ function AdminStatCard({ label, value, icon, iconColor, bgColor, accent, index =
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AdminDashboardPage() {
+  const { user, isLoading: authLoading } = useAuth();
+  const canAccessAdmin = hasAdminAccess();
   const [stats, setStats] = useState<UserStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState<string | null>(null);
@@ -372,6 +376,42 @@ export default function AdminDashboardPage() {
     ],
     [stats],
   );
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-[3px] border-[#FF9690]/30 border-t-[#FF9690]" />
+          <p className="mt-4 text-sm text-[#999]">Đang kiểm tra quyền truy cập...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!canAccessAdmin) {
+    return (
+      <div className="flex min-h-[70vh] items-center justify-center px-6">
+        <div className="w-full max-w-md rounded-3xl border border-[#FF9690]/20 bg-white p-8 text-center shadow-[0_8px_30px_rgba(255,150,144,0.15)]">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#FDEEEE] text-[#FF7A74]">
+            <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 2l8 4v6c0 5-3.5 9.5-8 10-4.5-.5-8-5-8-10V6l8-4z" />
+              <path d="M9 12l2 2 4-4" />
+            </svg>
+          </div>
+          <h1 className="text-xl font-extrabold text-[#3E2723]">Không có quyền truy cập</h1>
+          <p className="mt-2 text-sm text-[#757575]">
+            Tài khoản của bạn chưa có quyền Admin để vào trang quản trị.
+          </p>
+          <Link
+            href="/app/home"
+            className="mt-6 inline-flex items-center justify-center rounded-full bg-linear-to-r from-[#FF9690] to-[#FF7A74] px-6 py-2.5 text-sm font-semibold text-white shadow-md"
+          >
+            Về trang chủ
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-12">

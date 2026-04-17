@@ -233,21 +233,21 @@ body {
 
 .app-sidebar {
   width: 240px;
-  min-height: 100vh;
+  flex-shrink: 0;
+  height: 100vh;
   background: white;
   box-shadow: 2px 0 8px rgba(0,0,0,0.06);
   display: flex;
   flex-direction: column;
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 0;
   z-index: 40;
 }
 
 .app-content {
   flex: 1;
-  margin-left: 240px;
   min-height: 100vh;
+  min-width: 0;
   background: var(--pregtap-background-gradient);
 }
 
@@ -257,7 +257,6 @@ body {
     display: none;
   }
   .app-content {
-    margin-left: 0;
     padding-bottom: 72px;
   }
 }
