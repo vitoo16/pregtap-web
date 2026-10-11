@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -270,7 +270,9 @@ function RowFields({ children }: { children: React.ReactNode }) {
 export function OcrReviewForm({ ocrResultId, documentId, onSuccess }: OcrReviewFormProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [fields, setFields] = useState<EditableFields>(defaultFields);
+  // Keep only user edits as state; parsed OCR values are derived from query data.
+  // This prevents network refetches from overwriting in-progress edits.
+  const [fieldOverrides, setFieldOverrides] = useState<Partial<EditableFields>>({});
   const [showSuccess, setShowSuccess] = useState(false);
   const [confirmedData, setConfirmedData] = useState<Record<string, unknown>>({});
 
@@ -315,15 +317,14 @@ export function OcrReviewForm({ ocrResultId, documentId, onSuccess }: OcrReviewF
   const isSucceeded = status === 'Succeeded' || status === 'Confirmed';
   const isFailed = status === 'Failed';
 
-  // Initialize fields from review data
-  useEffect(() => {
-    if (reviewData?.vitals) {
-      setFields((prev) => ({ ...prev, ...populateFromVitals(reviewData.vitals) }));
-    }
-  }, [reviewData?.vitals]);
+  const fields: EditableFields = {
+    ...defaultFields,
+    ...(reviewData?.vitals ? populateFromVitals(reviewData.vitals) : {}),
+    ...fieldOverrides,
+  };
 
   function updateField(key: keyof EditableFields, value: string) {
-    setFields((prev) => ({ ...prev, [key]: value }));
+    setFieldOverrides((prev) => ({ ...prev, [key]: value }));
   }
 
   // Build vitals JSON for confirmation

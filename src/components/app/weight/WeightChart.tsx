@@ -27,6 +27,19 @@ type WeightChartProps = {
 const CHART_LINE_COLOR = '#FF9690';
 const CHART_LINE_DARK = '#FF7A74';
 
+function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: { displayDateFull: string; weight: number } }> }) {
+  if (!active || !payload || payload.length === 0) return null;
+  const data = payload[0].payload;
+  return (
+    <div className="rounded-xl border border-gray-100 bg-white px-4 py-3 shadow-lg">
+      <p className="text-xs text-[#757575]">{data.displayDateFull}</p>
+      <p className="mt-1 text-lg font-bold text-[#3E2723]">
+        {data.weight.toFixed(1)} kg
+      </p>
+    </div>
+  );
+}
+
 export function WeightChart({ logs, goal, isLoading }: WeightChartProps) {
   const chartData = useMemo(() => {
     if (!logs || logs.length < 2) return [];
@@ -88,19 +101,6 @@ export function WeightChart({ logs, goal, isLoading }: WeightChartProps) {
   const goalMaxWeight = prePregnancyWeight > 0 ? prePregnancyWeight + goalMaxGain : 0;
 
   const hasGoalRange = goalMinWeight > 0 && goalMaxWeight > 0;
-
-  function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: { displayDateFull: string; weight: number } }> }) {
-    if (!active || !payload || payload.length === 0) return null;
-    const data = payload[0].payload;
-    return (
-      <div className="rounded-xl border border-gray-100 bg-white px-4 py-3 shadow-lg">
-        <p className="text-xs text-[#757575]">{data.displayDateFull}</p>
-        <p className="mt-1 text-lg font-bold text-[#3E2723]">
-          {data.weight.toFixed(1)} kg
-        </p>
-      </div>
-    );
-  }
 
   return (
     <motion.div

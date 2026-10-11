@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
@@ -107,12 +108,12 @@ function AuthGate({ children }: { children: React.ReactNode }) {
           <p className="text-sm text-[#757575] mb-6">
             Bạn cần đăng nhập để truy cập mục này.
           </p>
-          <a
+          <Link
             href="/?login=true"
             className="inline-flex items-center justify-center gap-2 rounded-full bg-linear-to-r from-[#FF9690] to-[#FF7A74] px-6 py-2.5 text-sm font-semibold text-white shadow-md transition hover:shadow-lg"
           >
             Đăng nhập ngay
-          </a>
+          </Link>
         </div>
       </div>
     );
