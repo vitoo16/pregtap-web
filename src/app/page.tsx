@@ -8,7 +8,7 @@ import { PUBLIC_PRICING, PRICING_CHECKOUT_AVAILABLE } from '@/lib/public-pricing
 const SITE = 'https://pregtap.owerhappiness.id.vn';
 
 export const metadata: Metadata = {
-  title: 'PregTap (Pregtap) | Ứng dụng theo dõi thai kỳ dành cho mẹ bầu',
+  title: { absolute: 'PregTap (Pregtap) | Ứng dụng theo dõi thai kỳ dành cho mẹ bầu' },
   description: 'PregTap giúp mẹ bầu theo dõi tuần thai, cân nặng, dinh dưỡng, cảm xúc và quản lý hồ sơ khám thai trong một không gian dễ sử dụng.',
   alternates: { canonical: '/' },
   openGraph: {
