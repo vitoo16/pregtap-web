@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+# PregTap Web
 
-First, run the development server:
+Next.js 16 / React 19 site and application for PregTap.
+
+## Local development
 
 ```bash
+npm ci
+npm run lint
+npm run build
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> Some authenticated features and checkout depend on a backend that is currently offline. The landing page is server-rendered and the published Premium price cards are static.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## SEO / canonical domain
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The **canonical production domain** is `https://pregtap.owerhappiness.id.vn/`.
 
-## Learn More
+- `/` has PregTap-specific titles, descriptions, OG metadata and JSON-LD.
+- Next.js exposes `/robots.txt` and `/sitemap.xml`; the sitemap includes only public pages.
+- Personal app, profile, payment and API URLs are not meant for indexing.
+- `pregtap-web.vercel.app` is redirected to the production hostname if requests still arrive at that host.
+- The public marketing content must remain available even when the backend is down.
 
-To learn more about Next.js, take a look at the following resources:
+**After deploying**: confirm the custom domain resolves, HTTPS is valid, homepage returns 200, inspect the generated HTML (title, description, canonical, H1 and JSON-LD), and inspect robots/sitemap. Verify the domain in [Google Search Console](https://search.google.com/search-console), submit the sitemap, inspect the homepage URL and request indexing. Search engine rankings and indexing are not guaranteed by code changes.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Motion
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Landing motion follows the official GreenSock `gsap-react`, `gsap-scrolltrigger` and `gsap-performance` skills from [greensock/gsap-skills](https://github.com/greensock/gsap-skills). It uses a scoped `useGSAP`, ScrollTrigger entrance effects, and `prefers-reduced-motion`. The app UI still uses Framer Motion; migration outside the landing should be separately reviewed.
 
-## Deploy on Vercel
+## Prices and checkout
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Source of displayed subscription prices: the existing Terms of Use (`/terms-of-use`). Edit `src/lib/public-pricing.ts` if the published prices change. Prices shown publicly are **not authoritative for payment**, and the landing checkout is intentionally disabled while the backend is offline.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Security follow-up:** the legacy authentication flow stores access and refresh tokens in `localStorage` and JavaScript-readable cookies. Migrating to server-managed HttpOnly sessions requires a coordinated API/backend change and should not be attempted solely with front-end headers.

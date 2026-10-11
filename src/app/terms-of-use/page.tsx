@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/terms-of-use' },
   title: 'Điều khoản sử dụng (EULA) - PregTap',
   description:
     'Điều khoản sử dụng và Thỏa thuận Cấp phép Người dùng Cuối (EULA) của PregTap. Vui lòng đọc kỹ trước khi sử dụng ứng dụng.',
@@ -198,7 +199,7 @@ export default function TermsOfUsePage() {
 
           <Section title="10. Thay đổi điều khoản" icon="🔄">
             <p>
-              Chúng tôi có thể cập nhật Điều khoản này theo thời gian. Phiên bản mới nhất luôn được đăng tại <strong>https://pregtap.com/terms-of-use</strong>. Việc tiếp tục sử dụng sau khi Điều khoản được cập nhật nghĩa là bạn đồng ý với các thay đổi đó.
+              Chúng tôi có thể cập nhật Điều khoản này theo thời gian. Phiên bản mới nhất luôn được đăng tại <strong>https://pregtap.owerhappiness.id.vn/terms-of-use</strong>. Việc tiếp tục sử dụng sau khi Điều khoản được cập nhật nghĩa là bạn đồng ý với các thay đổi đó.
             </p>
           </Section>
 
@@ -212,7 +213,7 @@ export default function TermsOfUsePage() {
             <p>Nếu bạn có câu hỏi về Điều khoản sử dụng này, liên hệ:</p>
             <ul>
               <li><strong>Email:</strong> support@pregtap.com</li>
-              <li><strong>Website:</strong> https://pregtap-web.vercel.app</li>
+              <li><strong>Website:</strong> https://pregtap.owerhappiness.id.vn</li>
             </ul>
           </Section>
         </div>

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/privacy-policy' },
   title: 'Chính sách bảo mật - PregTap',
   description:
     'Chính sách bảo mật của PregTap. Tìm hiểu cách chúng tôi thu thập, sử dụng và bảo vệ thông tin cá nhân của bạn.',
@@ -165,7 +166,7 @@ export default function PrivacyPolicyPage() {
             <p>Nếu bạn có câu hỏi về chính sách bảo mật, vui lòng liên hệ:</p>
             <ul>
               <li><strong>Email:</strong> support@pregtap.com</li>
-              <li><strong>Website:</strong> https://pregtap-web.vercel.app</li>
+              <li><strong>Website:</strong> https://pregtap.owerhappiness.id.vn</li>
             </ul>
           </Section>
         </div>
