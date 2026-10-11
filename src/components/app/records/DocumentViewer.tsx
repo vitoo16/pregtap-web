@@ -66,11 +66,11 @@ export function DocumentViewer({
 
   const imageFiles = document.files.filter((f) => f.mimeType.startsWith('image/'));
 
-  const handleViewOcrReview = useCallback(() => {
+  const handleViewOcrReview = () => {
     if (document.ocrResult?.id) {
       router.push(`/app/records/${document.id}/ocr/${document.ocrResult.id}`);
     }
-  }, [document.id, document.ocrResult?.id, router]);
+  };
 
   const handleImageClick = useCallback((index: number) => {
     setImageModalIndex(index);

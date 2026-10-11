@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { LandingMotion } from '@/components/landing/LandingMotion';
@@ -87,9 +88,9 @@ export default function HomePage() {
             <a href="#pricing" className="hover:text-[#E87273]">Bảng giá</a>
             <a href="#faq" className="hover:text-[#E87273]">Câu hỏi thường gặp</a>
           </div>
-          <a href="/?login=true" className="rounded-full bg-[#E9787A] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#CA6266] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CA6266]">
+          <Link href="/?login=true" className="rounded-full bg-[#E9787A] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#CA6266] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CA6266]">
             Đăng nhập
-          </a>
+          </Link>
         </nav>
       </header>
 
@@ -258,7 +259,7 @@ export default function HomePage() {
         <div className="mx-auto mt-9 max-w-7xl border-t border-white/20 pt-6 text-sm text-white/60">© 2026 PregTap. All rights reserved.</div>
       </footer>
 
-      <LandingAuthPortal />
+      <Suspense fallback={null}><LandingAuthPortal /></Suspense>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(brandStructuredData).replace(/</g, '\\u003c') }} />
     </LandingMotion>
   );

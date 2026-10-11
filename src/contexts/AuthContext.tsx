@@ -60,7 +60,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   useEffect(() => {
-    void refreshUser().finally(() => setIsLoading(false));
+    let mounted = true;
+    async function initializeSession() {
+      try {
+        await refreshUser();
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    }
+    void initializeSession();
+    return () => { mounted = false; };
   }, [refreshUser]);
 
   // Listen for auth refresh events dispatched after login/register

@@ -27,6 +27,99 @@ type WeightChartProps = {
 const CHART_LINE_COLOR = '#FF9690';
 const CHART_LINE_DARK = '#FF7A74';
 
+
+
+export function WeightChart({ logs, goal, isLoading }: WeightChartProps) {
+  const chartData = useMemo(() => {
+    if (!logs || logs.length < 2) return [];
+
+    return [...logs]
+      .sort((a, b) => new Date(a.loggedOn).getTime() - new Date(b.loggedOn).getTime())
+      .map((log) => ({
+        date: log.loggedOn,
+        weight: log.weightKg,
+        displayDate: format(parseISO(log.loggedOn), 'dd/MM', { locale: vi }),
+        displayDateFull: format(parseISO(log.loggedOn), 'dd MMMM yyyy', { locale: vi }),
+      }));
+  }, [logs]);
+
+  const yDomain = useMemo(() => {
+    if (chartData.length === 0) return [0, 100];
+    const weights = chartData.map((d) => d.weight);
+    const min = weights.reduce((m, v) => Math.min(m, v), Infinity);
+    const max = weights.reduce((m, v) => Math.max(m, v), -Infinity);
+    const padding = (max - min) * 0.15 + 2;
+    return [Math.floor(min - padding), Math.ceil(max + padding)];
+  }, [chartData]);
+
+  if (isLoading) {
+    return (
+      <div className="card p-4">
+        <div className="animate-pulse space-y-3">
+          <div className="h-4 w-40 rounded bg-gray-200" />
+          <div className="h-56 rounded bg-gray-200" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!logs || logs.length < 2) {
+    return (
+      <div className="card p-4">
+        <h3 className="text-base font-bold text-[#3E2723] mb-3">Biểu đồ cân nặng</h3>
+        <EmptyState
+          icon={
+            <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M3 3v18h18" />
+              <path d="M18 9l-5 5-4-4-3 3" />
+            </svg>
+          }
+          title="Chưa đủ dữ liệu"
+          description="Cần ít nhất 2 bản ghi cân nặng để hiển thị biểu đồ."
+        />
+      </div>
+    );
+  }
+
+  const currentWeight = chartData[chartData.length - 1]?.weight ?? 0;
+  const prePregnancyWeight = goal?.prePregnancyWeightKg ?? 0;
+  const goalMinGain = goal?.recommendedTotalGainMin ?? 0;
+  const goalMaxGain = goal?.recommendedTotalGainMax ?? 0;
+
+  const goalMinWeight = prePregnancyWeight > 0 ? prePregnancyWeight + goalMinGain : 0;
+  const goalMaxWeight = prePregnancyWeight > 0 ? prePregnancyWeight + goalMaxGain : 0;
+
+  const hasGoalRange = goalMinWeight > 0 && goalMaxWeight > 0;
+
+client';
+
+import { useMemo } from 'react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceLine,
+} from 'recharts';
+import { motion } from 'framer-motion';
+import { format, parseISO } from 'date-fns';
+import { vi } from 'date-fns/locale';
+
+import { type WeightLog, type WeightGoalRange } from '@/types';
+import { EmptyState } from '@/components/app/shared/EmptyState';
+
+type WeightChartProps = {
+  logs: WeightLog[];
+  goal?: WeightGoalRange | null;
+  isLoading?: boolean;
+};
+
+const CHART_LINE_COLOR = '#FF9690';
+const CHART_LINE_DARK = '#FF7A74';
+
 export function WeightChart({ logs, goal, isLoading }: WeightChartProps) {
   const chartData = useMemo(() => {
     if (!logs || logs.length < 2) return [];
