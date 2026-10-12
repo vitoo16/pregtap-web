@@ -1161,14 +1161,19 @@ function Footer() {
           <div>
             <h4 className="font-semibold mb-3 text-sm">Liên kết</h4>
             <ul className="space-y-1.5">
-              {['Về chúng tôi', 'Tính năng', 'Bảng giá', 'Blog'].map((link, i) => (
-                <li key={i}>
+              {[
+                { label: 'Về chúng tôi', href: '/about' },
+                { label: 'Tính năng', href: '/#features' },
+                { label: 'Bảng giá', href: '/#premium' },
+                { label: 'Blog', href: '#' },
+              ].map((link) => (
+                <li key={link.label}>
                   <motion.a
-                    href="#"
+                    href={link.href}
                     whileHover={{ x: 5 }}
                     className="text-white/70 hover:text-white transition-colors text-sm"
                   >
-                    {link}
+                    {link.label}
                   </motion.a>
                 </li>
               ))}
