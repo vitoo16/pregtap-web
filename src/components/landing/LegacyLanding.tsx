@@ -9,7 +9,7 @@ import { AuthModal } from '@/components/auth-modal';
 import { ToastNotice } from '@/components/toast-notice';
 import { type ApiResponse, type AuthResponse, type AuthUser } from '@/lib/auth';
 import { getAccessToken, clearTokens } from '@/lib/token-store';
-import { PRICING_CHECKOUT_AVAILABLE, PUBLIC_PRICING } from '@/lib/public-pricing';
+import { PUBLIC_PRICING } from '@/lib/public-pricing';
 import {
   extractSubscriptionStatus,
   formatCurrencyVnd,
@@ -246,13 +246,11 @@ const features = [
 
 const premiumPlanContent: Record<SubscriptionPlanCode, {
   blurb: string;
-  cta: string;
   features: string[];
   popular: boolean;
 }> = {
   Monthly: {
     blurb: 'Phù hợp để trải nghiệm nhanh toàn bộ hệ sinh thái PregTap.',
-    cta: 'Mua gói 1 tháng',
     features: [
       'Toàn bộ tính năng theo dõi thai kỳ',
       'Thực đơn dinh dưỡng cá nhân hóa',
@@ -263,7 +261,6 @@ const premiumPlanContent: Record<SubscriptionPlanCode, {
   },
   SixMonths: {
     blurb: 'Lựa chọn cân bằng chi phí và thời gian đồng hành trong thai kỳ.',
-    cta: 'Mua gói 6 tháng',
     features: [
       'Toàn bộ tính năng của gói 1 tháng',
       'Theo dõi xuyên suốt tam cá nguyệt',
@@ -275,7 +272,6 @@ const premiumPlanContent: Record<SubscriptionPlanCode, {
   },
   Yearly: {
     blurb: 'Tối ưu nhất nếu bạn muốn sử dụng dài hạn và lưu trữ đầy đủ dữ liệu.',
-    cta: 'Mua gói 1 năm',
     features: [
       'Toàn bộ tính năng của gói 6 tháng',
       'Đồng hành dài hạn trước và sau sinh',
@@ -1027,12 +1023,6 @@ function Premium({ authUser }: { authUser: AuthUser | null }) {
                     ))}
                   </div>
                 </div>
-                <button
-                  disabled={!PRICING_CHECKOUT_AVAILABLE || isActivePlan}
-                  className={`mt-6 w-full rounded-[25px] px-5 py-3 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${isActivePlan ? 'bg-[#EAF7F0] text-[#1F7A4D]' : content.popular ? 'bg-linear-to-r from-[#FF9690] to-[#FF7A74] text-white shadow-md' : 'border-2 border-[#FF9690] text-[#FF9690] hover:bg-[#FF9690]/10'}`}
-                >
-                  {isActivePlan ? 'Gói hiện tại của bạn' : PRICING_CHECKOUT_AVAILABLE ? content.cta : 'Tạm ngưng đăng ký'}
-                </button>
               </AnimatedCard>
             );
           })}
