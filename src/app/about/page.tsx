@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
+import { LandingHeader } from '@/components/landing/LandingHeader';
 
 const SITE = 'https://pregtap.owerhappiness.id.vn';
 
@@ -49,27 +50,12 @@ const productAreas = [
 export default function AboutPage() {
   return (
     <main className="min-h-screen overflow-hidden bg-white text-[#3E2723]">
-      <header className="sticky top-0 z-50 border-b border-[#FFE1DC] bg-white/95 backdrop-blur-lg">
-        <nav aria-label="Điều hướng chính" className="mx-auto flex max-w-7xl items-center justify-between gap-5 px-5 py-3 sm:px-8">
-          <Link href="/" aria-label="PregTap - Trang chủ" className="flex shrink-0 items-center gap-2">
-            <Image src="/splash_logo_embedded.png" width={48} height={48} alt="" priority className="h-12 w-12 object-contain" />
-            <Image src="/pregtap_logo.png" width={144} height={46} alt="PregTap" priority className="h-9 w-auto object-contain" />
-          </Link>
-          <div className="hidden items-center gap-8 text-sm font-semibold text-[#63534F] sm:flex">
-            <a href="#company" className="transition-colors hover:text-[#E87273]">Owerhappiness</a>
-            <a href="#pregtap" className="transition-colors hover:text-[#E87273]">PregTap</a>
-            <a href="#journey" className="transition-colors hover:text-[#E87273]">Hành trình</a>
-          </div>
-          <Link href="/" className="rounded-full bg-[#E9787A] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#CA6266] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CA6266]">
-            Trang chủ
-          </Link>
-        </nav>
-      </header>
+      <LandingHeader isAboutPage />
 
       <section aria-labelledby="about-title" className="relative isolate overflow-hidden bg-linear-to-br from-[#FFF0F1] via-[#FFFAF7] to-[#E9F8F2]">
         <div aria-hidden="true" className="pointer-events-none absolute -left-24 top-20 h-80 w-80 rounded-full bg-[#FFC2C5]/35 blur-3xl" />
         <div aria-hidden="true" className="pointer-events-none absolute -right-20 bottom-0 h-96 w-96 rounded-full bg-[#D0EEDC]/55 blur-3xl" />
-        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-5 py-18 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20 lg:py-25">
+        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-5 pb-18 pt-28 sm:px-8 sm:pt-32 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20 lg:pb-25 lg:pt-36">
           <div>
             <p className="inline-flex items-center rounded-full border border-[#F4CFCE] bg-white/80 px-4 py-2 text-sm font-bold text-[#B35C61]">
               Về chúng tôi
